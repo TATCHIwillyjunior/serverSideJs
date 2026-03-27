@@ -1,10 +1,20 @@
-const express = require("express")
+import express from "express"
+import cors from "cors"
+import studentsData from "./students.json" with { type: "json" }
+
 const app = express()
 const port = 3000
 
+app.use(cors())
+
+
 app.get("/", (req, res) => {
-	res.json({ msg: "Hello World!" })
+	res.json({ msg: "Hello World! Your server is running." })	
 })
+
+app.get("/students", (req, res) => {
+	res.json(studentsData) 
+})	
 
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)
