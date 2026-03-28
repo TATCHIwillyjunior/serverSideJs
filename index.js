@@ -1,69 +1,86 @@
 import express from "express"
 import cors from "cors"
-import studentsData from "./students.json" with { type: "json" }
+//import studentsData from "./students.json" with { type: "json" }
+
+import studentsRoutes from "./routes/students.js"
 
 const app = express()
 const port = 3000
 
 app.use(cors())
+app.use(express.json())
 
 
 app.get("/", (req, res) => {
 	res.json({ msg: "Hello Willy! Your server is running..." })	
 })
 
+app.use("/students", studentsRoutes)
+
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)
 })
 
-// GET all students
-app.get("/students", (req, res) => {
-	res.json(studentsData) 
-})	
+// // GET all students
+// app.get("/students", (req, res) => {
+// 	res.json(studentsData) 
+// })	
 
-// GET student by ID
-app.get("/students/:id", (req, res) => {
-	const studentId = parseInt(req.params.id)
-	const student = studentsData.find(s => s.id === studentId)
-	if (student) {
-		res.json(student)
-	} else {
-		res.status(404).json({ error: "❌❌ Student was not found" })
-	}
-})
+// // GET student by ID
+// app.get("/students/:id", (req, res) => {
+// 	const studentId = parseInt(req.params.id)
+// 	const student = studentsData.find(s => s.id === studentId)
+// 	if (student) {
+// 		res.json(student)
+// 	} else {
+// 		res.status(404).json({ error: "❌❌ Student was not found" })
+// 	}
+// })
 
-// POST a new student
-app.post("/students", (req, res) => {
-	const newStudent = req.body
-	res.json({ msg: "Student created successfully", student: newStudent })
-})
+// // POST a new student
+// app.post("/students", (req, res) => {
+// 	const newStudent = req.body
+// 	res.json({ msg: "✅ Student created successfully", student: newStudent })
 
-// PUT update a student
-app.put("/students/:id", (req, res) => {
-	const studentId = parseInt(req.params.id)
+// 	// In a real application, you would save the new student to the database or JSON file here
+// 	// but here it does not create a new student, it just sends the data back to the client as a response
+// 	// There no changes where made.
+// })
 
-	// check if student id exits in db or JSON file, if not return 404 error
-	const student = studentsData.find(s => s.id === studentId)
-	if (!student) {
-		return res.status(404).json({ error: "❌❌ Student was not found" })
-	} else {
-		const updatedStudent = req.body
-		res.json({ msg: "Student updated successfully", student: updatedStudent })
-	}
-})
+// // PUT update a student
+// app.put("/students/:id", (req, res) => {
+// 	const studentId = parseInt(req.params.id)
 
-// DELETE a student
-app.delete("/students/:id", (req, res) => {
-	const studentId = parseInt(req.params.id)
-	// check if student id exits in db or JSON file, if not return 404 error
-	const student = studentsData.find(s => s.id === studentId)
-	if (!student) {
-		return res.status(404).json({ error: "❌❌ Student was not found" })
-	} else {
-		// In a real application, you would remove the student from the database
-		res.json({ msg: "Student deleted successfully" })
-	}
-})
+// 	// check if student id exits in db or JSON file, if not return 404 error
+// 	const student = studentsData.find(s => s.id === studentId)
+// 	if (!student) {
+// 		return res.status(404).json({ error: "❌❌ Student was not found" })
+// 	} else {
+// 		const updatedStudent = req.body
+// 		res.json({ msg: "✅ Student updated successfully", student: updatedStudent })
+
+// 		// In a real application, you would update the student in the database or JSON file here
+// 		// but here it does not update the student, it just sends the updated data back to the client as a response
+// 		// There no changes where made.
+
+// 	}
+// })
+
+// // DELETE a student
+// app.delete("/students/:id", (req, res) => {
+// 	const studentId = parseInt(req.params.id)
+// 	// check if student id exits in db or JSON file, if not return 404 error
+// 	const student = studentsData.find(s => s.id === studentId)
+// 	if (!student) {
+// 		return res.status(404).json({ error: "❌❌ Student was not found" })
+// 	} else {
+// 		// In a real application, you would remove the student from the database or JSON file here
+// 		// but here it does not delete the student, it just sends a success message back to the client as a response
+// 		// There no changes where made.
+
+// 		res.json({ msg: "✅ Student deleted successfully" })
+// 	}
+// })
 
 
 // NODEMON

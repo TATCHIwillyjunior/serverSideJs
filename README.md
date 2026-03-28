@@ -1,71 +1,283 @@
-# Exercise 01 — File System & JSON
+# Student Management REST API
 
-## Goal
+A Node.js Express server that provides a complete REST API for managing student records with CRUD operations (Create, Read, Update, Delete).
 
-Read a JSON file, transform its data, and write the result to a Markdown file — all using Node.js built-in modules, no `npm install` needed.
+## Features
 
-## What you will build
+- ✅ Get all students
+- ✅ Get a student by ID
+- ✅ Create a new student
+- ✅ Update an existing student
+- ✅ Delete a student
+- ✅ CORS enabled for cross-origin requests
+- ✅ Hot-reload with Nodemon for development
 
-A script that reads `students.json` and generates a `student_report.md` file.
+## Tech Stack
 
-## Run it
+- **Runtime:** Node.js
+- **Framework:** Express 5.2.1
+- **Middleware:** CORS 2.8.6
+- **Dev Tool:** Nodemon 3.1.14
+- **Data Format:** JSON
+
+## Project Structure
+
+```
+ServerJs/
+├── index.js                 # Main Express server with all API endpoints
+├── package.json            # Project dependencies and scripts
+├── students.json           # Sample student data
+├── student_report.md       # Generated student report
+├── FONT/                   # Frontend files (HTML, CSS, JS)
+│   ├── index.html
+│   ├── script.js
+│   └── style.css
+├── controllers/            # Route controller logic (future)
+├── routes/                 # Route definitions (future)
+├── services/               # Business logic services (future)
+└── serverSideJs/          # Submodule/additional server code
+```
+
+## Installation
+
+1. **Install dependencies:**
+```bash
+npm install
+```
+
+2. **Start the development server:**
+```bash
+npm run dev
+```
+
+The server will start on `http://localhost:3000/` with hot-reload enabled via Nodemon.
+
+## API Endpoints
+
+### GET /
+Returns a welcome message.
+
+**Request:**
+```
+GET http://localhost:3000/
+```
+
+**Response:**
+```json
+{
+  "msg": "Hello Willy! Your server is running..."
+}
+```
+
+### GET /students
+Retrieves all students.
+
+**Request:**
+```
+GET http://localhost:3000/students
+```
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Alice Martin",
+    "email": "alice.martin@epita.fr",
+    "major": "Computer Science",
+    "gpa": 3.8
+  },
+  ...
+]
+```
+
+### GET /students/:id
+Retrieves a specific student by ID.
+
+**Request:**
+```
+GET http://localhost:3000/students/1
+```
+
+**Response (Success - 200):**
+```json
+{
+  "id": 1,
+  "name": "Alice Martin",
+  "email": "alice.martin@epita.fr",
+  "major": "Computer Science",
+  "gpa": 3.8
+}
+```
+
+**Response (Not Found - 404):**
+```json
+{
+  "error": "❌❌ Student was not found"
+}
+```
+
+### POST /students
+Creates a new student.
+
+**Request:**
+```
+POST http://localhost:3000/students
+Content-Type: application/json
+
+{
+  "id": 4,
+  "name": "David Chen",
+  "email": "david.chen@epita.fr",
+  "major": "Computer Science",
+  "gpa": 3.7
+}
+```
+
+**Response (201):**
+```json
+{
+  "msg": "Student created successfully",
+  "student": {
+    "id": 4,
+    "name": "David Chen",
+    "email": "david.chen@epita.fr",
+    "major": "Computer Science",
+    "gpa": 3.7
+  }
+}
+```
+
+### PUT /students/:id
+Updates an existing student.
+
+**Request:**
+```
+PUT http://localhost:3000/students/1
+Content-Type: application/json
+
+{
+  "id": 1,
+  "name": "Alice Martin",
+  "email": "alice.martin@epita.fr",
+  "major": "Data Science",
+  "gpa": 3.9
+}
+```
+
+**Response (Success - 200):**
+```json
+{
+  "msg": "Student updated successfully",
+  "student": {
+    "id": 1,
+    "name": "Alice Martin",
+    "email": "alice.martin@epita.fr",
+    "major": "Data Science",
+    "gpa": 3.9
+  }
+}
+```
+
+**Response (Not Found - 404):**
+```json
+{
+  "error": "❌❌ Student was not found"
+}
+```
+
+### DELETE /students/:id
+Deletes a student.
+
+**Request:**
+```
+DELETE http://localhost:3000/students/1
+```
+
+**Response (Success - 200):**
+```json
+{
+  "msg": "Student deleted successfully"
+}
+```
+
+**Response (Not Found - 404):**
+```json
+{
+  "error": "❌❌ Student was not found"
+}
+```
+
+## Usage Examples
+
+### Using cURL
 
 ```bash
-node index.js
+# Get all students
+curl http://localhost:3000/students
+
+# Get student by ID
+curl http://localhost:3000/students/1
+
+# Create a new student
+curl -X POST http://localhost:3000/students \
+  -H "Content-Type: application/json" \
+  -d '{"id":4,"name":"David","email":"david@epita.fr","major":"CS","gpa":3.7}'
+
+# Update a student
+curl -X PUT http://localhost:3000/students/1 \
+  -H "Content-Type: application/json" \
+  -d '{"id":1,"name":"Alice","email":"alice@epita.fr","major":"DS","gpa":3.9}'
+
+# Delete a student
+curl -X DELETE http://localhost:3000/students/1
 ```
 
-If it works, you should see a success message in the terminal and a new `student_report.md` file appear next to `index.js`.
+### Using Postman
 
-## Modules you will need
+1. Import the endpoints above into Postman
+2. Use the request examples provided
+3. Switch between GET, POST, PUT, DELETE methods as needed
 
-| Module | What it does                            |
-| ------ | --------------------------------------- |
-| `fs`   | Read and write files on your filesystem |
-| `path` | Build file paths that work on any OS    |
+## Available Scripts
 
-Both are built into Node.js — just `require` them, no install needed.
+```bash
+# Run with Nodemon (development with hot-reload)
+npm run dev
 
-## Key functions
-
-- `fs.readFileSync(filePath, 'utf-8')` — reads a file and returns its contents as a string
-- `fs.writeFileSync(filePath, content, 'utf-8')` — writes a string to a file (creates it if it doesn't exist)
-- `JSON.parse(string)` — converts a JSON string into a JavaScript object
-- `path.join(__dirname, 'filename')` — builds a safe absolute path relative to the current script
-
-## Steps
-
-1. Require the `fs` and `path` modules
-2. Read `students.json` using `fs.readFileSync`
-3. Parse the JSON string into a JavaScript array using `JSON.parse`
-4. Build a Markdown string by looping over the students array
-5. Write the result to `student_report.md` using `fs.writeFileSync`
-
-## Expected output
-
-The generated `student_report.md` should look like this:
-
-```markdown
-# Student Report
-
-Generated on: 20/03/2026
-
-## Summary
-
-Total Students: 3
-
-## Student Details
-
-### Alice Martin
-
-- **Email:** alice.martin@epita.fr
-- **Major:** Computer Science
-- **GPA:** 3.8
-- **ID:** 1
-  ...
+# Run with plain Node.js
+npm run epita
 ```
 
-## Hints
+## Frontend
 
-- `__dirname` is a Node.js variable that always points to the folder where your script lives — useful for building reliable file paths
-- `Array.forEach()` lets you loop over each student and append their info to your Markdown string
-- Template literals (backticks) make it easy to embed variables inside strings: `` `Hello ${name}` ``
+The frontend files are located in the `FONT/` folder. To use the API with the frontend:
+
+1. Start the server: `npm run dev`
+2. Open `FONT/index.html` in your browser
+3. The frontend will make requests to the API endpoints
+
+## Current Sample Data
+
+The API comes with 3 sample students in `students.json`:
+
+1. **Alice Martin** - Computer Science, GPA: 3.8
+2. **Bob Dupont** - Computer Science, GPA: 3.5
+3. **Clara Rousseau** - Computer Science, GPA: 3.9
+
+## Future Enhancements
+
+- [ ] Implement data persistence (database integration)
+- [ ] Add request body validation
+- [ ] Implement PUT to actually update students.json
+- [ ] Implement DELETE to actually remove from students.json
+- [ ] Add student search/filter endpoints
+- [ ] Add error logging
+- [ ] Add authentication/authorization
+- [ ] Add API documentation with Swagger
+
+## Notes
+
+- Currently, POST, PUT, and DELETE endpoints simulate operations but don't persist changes to `students.json`
+- To make changes permanent, integrate a database (MongoDB, PostgreSQL, etc.) or implement file system write operations
+- CORS is enabled to allow requests from different origins
