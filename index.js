@@ -9,16 +9,62 @@ app.use(cors())
 
 
 app.get("/", (req, res) => {
-	res.json({ msg: "Hello World! Your server is running." })	
+	res.json({ msg: "Hello Willy! Your server is running..." })	
 })
-
-app.get("/students", (req, res) => {
-	res.json(studentsData) 
-})	
 
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)
 })
+
+// GET all students
+app.get("/students", (req, res) => {
+	res.json(studentsData) 
+})	
+
+// GET student by ID
+app.get("/students/:id", (req, res) => {
+	const studentId = parseInt(req.params.id)
+	const student = studentsData.find(s => s.id === studentId)
+	if (student) {
+		res.json(student)
+	} else {
+		res.status(404).json({ error: "❌❌ Student was not found" })
+	}
+})
+
+// POST a new student
+app.post("/students", (req, res) => {
+	const newStudent = req.body
+	res.json({ msg: "Student created successfully", student: newStudent })
+})
+
+// PUT update a student
+app.put("/students/:id", (req, res) => {
+	const studentId = parseInt(req.params.id)
+
+	// check if student id exits in db or JSON file, if not return 404 error
+	const student = studentsData.find(s => s.id === studentId)
+	if (!student) {
+		return res.status(404).json({ error: "❌❌ Student was not found" })
+	} else {
+		const updatedStudent = req.body
+		res.json({ msg: "Student updated successfully", student: updatedStudent })
+	}
+})
+
+// DELETE a student
+app.delete("/students/:id", (req, res) => {
+	const studentId = parseInt(req.params.id)
+	// check if student id exits in db or JSON file, if not return 404 error
+	const student = studentsData.find(s => s.id === studentId)
+	if (!student) {
+		return res.status(404).json({ error: "❌❌ Student was not found" })
+	} else {
+		// In a real application, you would remove the student from the database
+		res.json({ msg: "Student deleted successfully" })
+	}
+})
+
 
 // NODEMON
 
