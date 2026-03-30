@@ -24,33 +24,53 @@ A Node.js Express server that provides a complete REST API for managing student 
 
 ```
 ServerJs/
-├── index.js                 # Main Express server with all API endpoints
-├── package.json            # Project dependencies and scripts
-├── students.json           # Sample student data
-├── student_report.md       # Generated student report
+├── BACK/                    # Backend server code
+│   ├── index.js            # Main Express server with all API endpoints
+│   ├── package.json        # Project dependencies and scripts
+│   ├── package-lock.json   # Dependency lock file
+│   ├── students.json       # Sample student data
+│   ├── student_report.md   # Generated student report
+│   ├── controllers/        # Route controller logic
+│   │   └── studentsController.js
+│   ├── routes/             # Route definitions
+│   │   └── students.js
+│   └── services/           # Business logic services
+│       └── studentsServices.js
 ├── FONT/                   # Frontend files (HTML, CSS, JS)
-│   ├── index.html
-│   ├── script.js
-│   └── style.css
-├── controllers/            # Route controller logic (future)
-├── routes/                 # Route definitions (future)
-├── services/               # Business logic services (future)
+│   ├── index.html         # Main HTML file
+│   ├── script.js          # Frontend API integration
+│   └── style.css          # Styling
+├── README.md              # This file
+├── package.json           # Root package configuration
 └── serverSideJs/          # Submodule/additional server code
 ```
 
 ## Installation
 
-1. **Install dependencies:**
+### Backend Setup
+
+1. **Navigate to the BACK folder:**
+```bash
+cd BACK
+```
+
+2. **Install dependencies:**
 ```bash
 npm install
 ```
 
-2. **Start the development server:**
+3. **Start the development server:**
 ```bash
 npm run dev
 ```
 
 The server will start on `http://localhost:3000/` with hot-reload enabled via Nodemon.
+
+### Frontend Setup
+
+1. Open `FONT/index.html` in your browser
+2. The frontend will automatically connect to the API at `http://localhost:3000/students`
+3. Make sure the backend server is running before starting the frontend
 
 ## API Endpoints
 
@@ -241,21 +261,25 @@ curl -X DELETE http://localhost:3000/students/1
 
 ## Available Scripts
 
+Navigate to the `BACK/` folder to run these scripts:
+
 ```bash
 # Run with Nodemon (development with hot-reload)
 npm run dev
 
-# Run with plain Node.js
+# Run with plain Node.js (EPITA project runner)
 npm run epita
 ```
 
 ## Frontend
 
-The frontend files are located in the `FONT/` folder. To use the API with the frontend:
+The frontend files are located in the `FONT/` folder at the root level. To use the API with the frontend:
 
-1. Start the server: `npm run dev`
-2. Open `FONT/index.html` in your browser
-3. The frontend will make requests to the API endpoints
+1. Start the backend server: Navigate to `BACK/` folder and run `npm run dev`
+2. Open `FONT/index.html` in your browser (or use a local server)
+3. The frontend will automatically make requests to `http://localhost:3000/students`
+
+**Important:** Make sure the backend server is running before accessing the frontend, as it relies on the API endpoints.
 
 ## Current Sample Data
 
@@ -276,8 +300,32 @@ The API comes with 3 sample students in `students.json`:
 - [ ] Add authentication/authorization
 - [ ] Add API documentation with Swagger
 
+## Project Architecture
+
+### Code Organization
+
+The project is organized with a **clear separation of concerns** between frontend and backend:
+
+- **BACK/** - Backend REST API server (Node.js/Express)
+  - `controllers/` - Handle HTTP requests and responses
+  - `routes/` - Define API endpoints and map to controllers
+  - `services/` - Contain business logic (data manipulation, validation)
+  - `index.js` - Express app configuration and server initialization
+
+- **FONT/** - Frontend client (HTML/CSS/JavaScript)
+  - Communicates with the backend via HTTP requests
+  - Displays student data in the UI
+
+### Design Patterns Used
+
+1. **MVC (Model-View-Controller)**: Backend separates concerns with controllers, routes, and services
+2. **API-First**: Frontend consumes REST API independently
+3. **Modular Structure**: Each layer has a single responsibility
+
 ## Notes
 
 - Currently, POST, PUT, and DELETE endpoints simulate operations but don't persist changes to `students.json`
 - To make changes permanent, integrate a database (MongoDB, PostgreSQL, etc.) or implement file system write operations
 - CORS is enabled to allow requests from different origins
+- Recent refactoring (March 30, 2026) moved all backend code into the `BACK/` folder for better project organization
+
