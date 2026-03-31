@@ -9,13 +9,13 @@ export function getStudentById(id) {
 }
 
 export function createStudent(data) {
-  return data   
+  return data    // Return the created student object
 }
 
 export function updateStudent(id, data) {
-  return data   
+  return data   // Return the updated student object
 }
 
 export function deleteStudent(id) {
-  return true   
+  return true   // Return true to indicate successful deletion
 }

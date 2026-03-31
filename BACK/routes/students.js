@@ -7,12 +7,12 @@ import {
   deleteStudentController
 } from "../controllers/studentsController.js"
 
-const router = express.Router()
+const studentRouter = express.Router()
 
-router.get("/", getStudentsController)
-router.get("/:id", getStudentByIdController)
-router.post("/", createStudentController)
-router.put("/:id", updateStudentController)
-router.delete("/:id", deleteStudentController)
+studentRouter.get("/", getStudentsController)
+studentRouter.get("/:id", getStudentByIdController)
+studentRouter.post("/", createStudentController)
+studentRouter.put("/:id", updateStudentController)
+studentRouter.delete("/:id", deleteStudentController)
 
-export default router
+export default studentRouter
