@@ -24,11 +24,18 @@ export function getStudentByIdController(req, res) {
     // but by default it returns 200 status code, showing the GET request work but 200 should show up just for working id's so defining a 404 error makes it more clear and accurate.
     return res.status(404).json({ error: "❌❌ Student was not found" })
   }
-
   res.json(student)
 }
 
-////// POST a new student
+////// POST or CREATE a new student
+
+/// 🚨🚨🚨🚨 FOR THE PURPOSE OF DEVELOPMENT THE PASSWORD WILL BE MADE PUBLIC 🚨🚨
+//
+// 1. In Later changes, password will be hashed and not stored in plain text, 
+//  and the API will not return the password in the response when creating or 
+//  retrieving student data. 
+// 2. The password associated to each student in the test Json file (being students.json) will be changed
+//
 
 // further improvement could be checking if the new student data is valid (e.g., has required fields like name, age, etc.) before creating the student.
 // If the data is invalid, I return a 400 Bad Request error with a message indicating what is wrong with the data. This would make the API more robust and user-friendly.
@@ -67,6 +74,7 @@ export function updateStudentController(req, res) {
   }
 }
 
+// DELETE a student
 export function deleteStudentController(req, res) {
   const id = parseInt(req.params.id)
   const student = getStudentById(id)

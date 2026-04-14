@@ -3,6 +3,7 @@
     "id": 1,
     "name": "Alice Martin",
     "email": "alice.martin@epita.fr",
+    "password": "alice123",
     "major": "Computer Science",
     "gpa": 3.8
   },
@@ -10,6 +11,7 @@
     "id": 2,
     "name": "Bob Dupont",
     "email": "bob.dupont@epita.fr",
+    "password": "bob123",
     "major": "Computer Science",
     "gpa": 3.5
   },
@@ -17,6 +19,7 @@
     "id": 3,
     "name": "Clara Rousseau",
     "email": "clara.rousseau@epita.fr",
+    "password": "clara123",
     "major": "Computer Science",
     "gpa": 3.9
   }
