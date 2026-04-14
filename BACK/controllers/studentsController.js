@@ -16,15 +16,7 @@ export function getStudentsController(req, res) {
 
 // GET student by ID
 export function getStudentByIdController(req, res) {
-  const id = parseInt(req.params.id)
-  const student = getStudentById(id)
-
-  if (!student) {
-    // If student not found, return 404 error
-    // but by default it returns 200 status code, showing the GET request work but 200 should show up just for working id's so defining a 404 error makes it more clear and accurate.
-    return res.status(404).json({ error: "❌❌ Student was not found" })
-  }
-  res.json(student)
+  res.json(req.student)
 }
 
 ////// POST or CREATE a new student
@@ -42,15 +34,23 @@ export function getStudentByIdController(req, res) {
 // also
 // checking if a student with the same ID already exists before creating a new student. If a student with the same ID exists,
 // I return a 409 Conflict error to indicate that the request could not be completed due to a conflict with the current state of the resource.
+
 export function createStudentController(req, res) {
+
+  // Valided the id by checking if it is valid number and if it already exists in the students data,
+  // if it is not valid or already exists, return an error response with appropriate status code and message.
+  const { id } = req.body
+  if (id !== undefined && getStudentById(parseInt(id))) {
+    return res.status(409).json({ error: "❌ A student with this ID already exists." })
+  }
+
+  // Valided if what enter by student inside the body is valid by checking if it goes against the validation rules defined in the validateStudentBody
+  // middleware function, if it is not valid, return an error response with appropriate status code and message.
   const newStudent = createStudent(req.body)
   res.status(201).json({
     msg: "✅ Student created successfully",
     student: newStudent
   })
-  // In a real application, you would save the new student to the database or JSON file here
-  // but here it does not create a new student, it just sends the data back to the client as a response
-  // There no changes where made.
 }
 
 // PUT update a student
