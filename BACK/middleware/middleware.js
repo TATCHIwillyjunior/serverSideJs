@@ -22,9 +22,10 @@ export function validateStudentId(req, res, next) {
 }
 
 export function validateStudentBody(req, res, next) {
-    
-    // Valided the id by checking if it is valid number and if it already exists in the students data,                     
-    // if it is not valid or already exists, return an error response with appropriate status code and message. 
+    if (!req.body || typeof req.body !== "object") {
+        return res.status(400).json({ error: "❌ Request body is missing or not valid JSON. Make sure to set Content-Type: application/json." })
+    }
+
     const { id, name, email, major, gpa } = req.body;
 
     if (id !== undefined) {
@@ -32,7 +33,8 @@ export function validateStudentBody(req, res, next) {
         if (isNaN(parsedId) || parsedId <= 0) {
             return res.status(400).json({ error: "❌ ID must be a valid number." });
         }
-        if (getStudentById(parsedId)) {
+        // Only block duplicate ID on create (POST), not on update (PUT) 
+        if (!req.student && getStudentById(parsedId)) {
             return res.status(409).json({ error: "❌ A student with this ID already exists." });
         }
     }
@@ -77,7 +79,8 @@ export function validateStudentBody(req, res, next) {
             .json({ error: "❌ 'email' must be a valid email address." });
     }
 
-    if (getAllStudents().some(s => s.email === email)) {
+    const currentId = req.student ? req.student.id : null;
+    if (getAllStudents().some(s => s.email === email && s.id !== currentId)) {
         return res.status(409).json({ error: "❌ A student with this email already exists." });
     }
 

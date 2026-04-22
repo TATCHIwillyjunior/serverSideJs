@@ -14,6 +14,8 @@ A Node.js Express server that provides a complete REST API for managing student 
 - ✅ Request body validation (required fields, types, formats)
 - ✅ Duplicate ID and email detection on creation (409 Conflict)
 - ✅ Malformed JSON handled gracefully (400 instead of server crash)
+- ✅ Full data persistence — POST, PUT, and DELETE all write to students.json
+- ✅ PUT validates the body the same way POST does (via shared middleware)
 
 ## Tech Stack
 
@@ -208,7 +210,7 @@ Content-Type: application/json
 **Response (Success - 200):**
 ```json
 {
-  "msg": "Student updated successfully",
+  "msg": "✅ Student updated successfully",
   "student": {
     "id": 1,
     "name": "Alice Martin",
@@ -219,11 +221,19 @@ Content-Type: application/json
 }
 ```
 
-**Response (Not Found - 404):**
+**Response (400 - Missing body or invalid field):**
 ```json
-{
-  "error": "❌❌ Student was not found"
-}
+{ "error": "❌ Request body is missing or not valid JSON. Make sure to set Content-Type: application/json." }
+```
+
+**Response (404 - Not found):**
+```json
+{ "error": "❌❌ Student was not found" }
+```
+
+**Response (409 - Duplicate email):**
+```json
+{ "error": "❌ A student with this email already exists." }
 ```
 
 ### DELETE /students/:id
@@ -236,16 +246,12 @@ DELETE http://localhost:3000/students/1
 
 **Response (Success - 200):**
 ```json
-{
-  "msg": "Student deleted successfully"
-}
+{ "msg": "✅ Student deleted successfully" }
 ```
 
 **Response (Not Found - 404):**
 ```json
-{
-  "error": "❌❌ Student was not found"
-}
+{ "error": "❌❌ Student was not found" }
 ```
 
 ## Usage Examples
@@ -311,12 +317,12 @@ The API comes with 3 sample students in `students.json`:
 
 ## Future Enhancements
 
-- [ ] Implement data persistence (database integration)
 - [x] Add request body validation
 - [x] Duplicate ID and email detection on POST
 - [x] Graceful malformed JSON error handling
-- [ ] Implement PUT to actually update students.json
-- [ ] Implement DELETE to actually remove from students.json
+- [x] Implement PUT to actually update students.json
+- [x] Implement DELETE to actually remove from students.json
+- [ ] Implement data persistence (database integration)
 - [ ] Add student search/filter endpoints
 - [ ] Add error logging
 - [ ] Add authentication/authorization
@@ -347,10 +353,10 @@ The project is organized with a **clear separation of concerns** between fronten
 
 ## Notes
 
-- Currently, POST, PUT, and DELETE endpoints simulate operations but don't persist changes to `students.json`
-- To make changes permanent, integrate a database (MongoDB, PostgreSQL, etc.) or implement file system write operations
+- POST, PUT, and DELETE all persist changes directly to `students.json` using `fs.readFileSync`/`writeFileSync` — no in-memory state, every read goes straight to the file
 - CORS is enabled to allow requests from different origins
-- Recent refactoring (March 30, 2026) moved all backend code into the `BACK/` folder for better project organization
-- Validation middleware (`validateStudentBody`) runs before POST handlers — it rejects missing fields, invalid types, duplicate IDs, and duplicate emails before the controller is reached
+- Always set `Content-Type: application/json` on POST and PUT requests — without it, `express.json()` won't parse the body and the middleware will return a 400
+- `validateStudentBody` is shared between POST and PUT — it skips the duplicate ID check on PUT since the student already exists, and skips the duplicate email check for the student's own current email
 - Malformed JSON (unparseable request body) is caught by `handleJsonParseError` and returns a clean 400 response instead of crashing to an HTML error page
+- For production, replace `students.json` file storage with a proper database (MongoDB, PostgreSQL, etc.)
 

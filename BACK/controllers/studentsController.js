@@ -37,8 +37,8 @@ export function getStudentByIdController(req, res) {
 
 export function createStudentController(req, res) {
 
-  // Valided if what enter by student inside the body is valid by checking if it goes against the validation rules defined in the validateStudentBody
-  // middleware function, if it is not valid, return an error response with appropriate status code and message.
+  // Valided if what enter by student inside the body is valid. Checks if it goes against the validation rules defined in the validateStudentBody
+  // middleware function and return an error response with appropriate status code and message.
   const newStudent = createStudent(req.body)
   res.status(201).json({
     msg: "✅ Student created successfully",
@@ -48,40 +48,15 @@ export function createStudentController(req, res) {
 
 // PUT update a student
 export function updateStudentController(req, res) {
-  const id = parseInt(req.params.id)
-  const student = getStudentById(id)
-
-  if (!student) { 
-    // If student not found, return 404 error
-    // but by default it returns 200 status code, showing the PUT request work but 200 should show up just for working id's so defining a 404 error makes it more clear and accurate.
-    return res.status(404).json({ error: "❌❌ Student was not found" })
-  } else {
-  const updated = updateStudent(id, req.body)
+  const updated = updateStudent(parseInt(req.params.id), req.body)
   res.json({
     msg: "✅ Student updated successfully",
     student: updated
-    // In a real application, you would update the student in the database or JSON file here
-    // but here it does not update the student, it just sends the updated data back to the client as a response
-    // There no changes where made.
   })
-  }
 }
 
 // DELETE a student
 export function deleteStudentController(req, res) {
-  const id = parseInt(req.params.id)
-  const student = getStudentById(id)
-
-  if (!student) {
-    // If student not found, return 404 error
-    // but by default it returns 200 status code, showing the DELETE request work but 200 should show up just for working id's so defining a 404 error makes it more clear and accurate.
-    return res.status(404).json({ error: "❌❌ Student was not found" })
-  } else {
-
-  deleteStudent(id)
+  deleteStudent(parseInt(req.params.id))
   res.json({ msg: "✅ Student deleted successfully" })
-  // In a real application, you would remove the student from the database or JSON file here
-  // but here it does not delete the student, it just sends a success message back to the client as a response
-  // There no changes where made.
-  }
 }
