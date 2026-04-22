@@ -13,7 +13,7 @@
     "email": "bob.dupont@epita.fr",
     "password": "bob123",
     "major": "Civil Engineering",
-    "gpa": 3.5
+    "gpa": 0
   },
   {
     "id": 3,
@@ -27,6 +27,14 @@
     "id": 4,
     "name": "David Moreau",
     "email": "david.moreau@epita.fr",
+    "password": "david123",
+    "major": "Computer Science",
+    "gpa": 3.5
+  },
+  {
+    "id": 5,
+    "name": "David Moreau",
+    "email": "david.moreau2@epita.fr",
     "password": "david123",
     "major": "Computer Science",
     "gpa": 3.5

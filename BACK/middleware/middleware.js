@@ -66,7 +66,7 @@ export function validateStudentBody(req, res, next) {
     }
 
     const parsedGpa = parseFloat(gpa);
-    if (isNaN(parsedGpa) || parsedGpa < 0 || parsedGpa > 4) {
+    if (isNaN(parsedGpa) || parsedGpa === -0 || parsedGpa < 0 || parsedGpa > 4) {
         return res
             .status(400)
             .json({ error: "❌ 'gpa' must be a number between 0 and 4." });
