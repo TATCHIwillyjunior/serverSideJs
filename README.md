@@ -11,6 +11,9 @@ A Node.js Express server that provides a complete REST API for managing student 
 - ✅ Delete a student
 - ✅ CORS enabled for cross-origin requests
 - ✅ Hot-reload with Nodemon for development
+- ✅ Request body validation (required fields, types, formats)
+- ✅ Duplicate ID and email detection on creation (409 Conflict)
+- ✅ Malformed JSON handled gracefully (400 instead of server crash)
 
 ## Tech Stack
 
@@ -32,6 +35,8 @@ ServerJs/
 │   ├── student_report.md   # Generated student report
 │   ├── controllers/        # Route controller logic
 │   │   └── studentsController.js
+│   ├── middleware/         # Request validation and error handling
+│   │   └── middleware.js
 │   ├── routes/             # Route definitions
 │   │   └── students.js
 │   └── services/           # Business logic services
@@ -157,7 +162,7 @@ Content-Type: application/json
 **Response (201):**
 ```json
 {
-  "msg": "Student created successfully",
+  "msg": "✅ Student created successfully",
   "student": {
     "id": 4,
     "name": "David Chen",
@@ -166,6 +171,21 @@ Content-Type: application/json
     "gpa": 3.7
   }
 }
+```
+
+**Response (400 - Missing or invalid field):**
+```json
+{ "error": "❌ 'gpa' must be a number between 0 and 4." }
+```
+
+**Response (400 - Malformed JSON):**
+```json
+{ "error": "❌ Invalid JSON in request body." }
+```
+
+**Response (409 - Duplicate ID or email):**
+```json
+{ "error": "❌ A student with this email already exists." }
 ```
 
 ### PUT /students/:id
@@ -292,7 +312,9 @@ The API comes with 3 sample students in `students.json`:
 ## Future Enhancements
 
 - [ ] Implement data persistence (database integration)
-- [ ] Add request body validation
+- [x] Add request body validation
+- [x] Duplicate ID and email detection on POST
+- [x] Graceful malformed JSON error handling
 - [ ] Implement PUT to actually update students.json
 - [ ] Implement DELETE to actually remove from students.json
 - [ ] Add student search/filter endpoints
@@ -308,6 +330,7 @@ The project is organized with a **clear separation of concerns** between fronten
 
 - **BACK/** - Backend REST API server (Node.js/Express)
   - `controllers/` - Handle HTTP requests and responses
+  - `middleware/` - Validate request bodies/params and handle errors
   - `routes/` - Define API endpoints and map to controllers
   - `services/` - Contain business logic (data manipulation, validation)
   - `index.js` - Express app configuration and server initialization
@@ -328,4 +351,6 @@ The project is organized with a **clear separation of concerns** between fronten
 - To make changes permanent, integrate a database (MongoDB, PostgreSQL, etc.) or implement file system write operations
 - CORS is enabled to allow requests from different origins
 - Recent refactoring (March 30, 2026) moved all backend code into the `BACK/` folder for better project organization
+- Validation middleware (`validateStudentBody`) runs before POST handlers — it rejects missing fields, invalid types, duplicate IDs, and duplicate emails before the controller is reached
+- Malformed JSON (unparseable request body) is caught by `handleJsonParseError` and returns a clean 400 response instead of crashing to an HTML error page
 

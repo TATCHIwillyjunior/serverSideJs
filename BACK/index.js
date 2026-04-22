@@ -3,6 +3,7 @@ import cors from "cors"
 //import studentsData from "./students.json" with { type: "json" }
 
 import studentsRoutes from "./routes/students.js"
+import { handleJsonParseError } from "./middleware/middleware.js"
 
 const app = express()
 const port = 3000
@@ -16,6 +17,8 @@ app.get("/", (req, res) => {
 })
 
 app.use("/students", studentsRoutes)
+
+app.use(handleJsonParseError)
 
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)

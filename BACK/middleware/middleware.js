@@ -1,4 +1,4 @@
-import { getStudentById } from "../services/studentsServices.js"
+import { getStudentById, getAllStudents } from "../services/studentsServices.js"
 
 export function logRequest(req, _res, next) {
     console.log(`${req.method} ${req.url}`);
@@ -7,7 +7,7 @@ export function logRequest(req, _res, next) {
 
 export function validateStudentId(req, res, next) {
     const id = parseInt(req.params.id)
-    if (isNaN(id)) {
+    if (isNaN(id) || id <= 0) {
         return res.status(400).json({ error: "❌ ID must be a valid number." })
     }
     const student = getStudentById(id)
@@ -22,7 +22,20 @@ export function validateStudentId(req, res, next) {
 }
 
 export function validateStudentBody(req, res, next) {
-    const { name, email, major, gpa } = req.body;
+    
+    // Valided the id by checking if it is valid number and if it already exists in the students data,                     
+    // if it is not valid or already exists, return an error response with appropriate status code and message. 
+    const { id, name, email, major, gpa } = req.body;
+
+    if (id !== undefined) {
+        const parsedId = parseInt(id);
+        if (isNaN(parsedId) || parsedId <= 0) {
+            return res.status(400).json({ error: "❌ ID must be a valid number." });
+        }
+        if (getStudentById(parsedId)) {
+            return res.status(409).json({ error: "❌ A student with this ID already exists." });
+        }
+    }
 
     if (!name || typeof name !== "string" || name.trim() === "") {
         return res
@@ -64,5 +77,16 @@ export function validateStudentBody(req, res, next) {
             .json({ error: "❌ 'email' must be a valid email address." });
     }
 
+    if (getAllStudents().some(s => s.email === email)) {
+        return res.status(409).json({ error: "❌ A student with this email already exists." });
+    }
+
     next();
+}
+
+export function handleJsonParseError(err, req, res, next) {
+    if (err.type === "entity.parse.failed") {
+        return res.status(400).json({ error: "❌ Invalid JSON in request body." })
+    }
+    next(err)
 }
