@@ -87,6 +87,26 @@ export function validateStudentBody(req, res, next) {
     next();
 }
 
+// Password validation middleware
+export function validatePassword(req, res, next) {
+  const { password } = req.body;
+
+  // Only require password on POST
+  if (req.method === "POST") {
+    if (!password || typeof password !== "string" || password.trim() === "") {
+      return res.status(400).json({ error: "❌ 'password' is required for new students." });
+    }
+  }
+
+  // If password exists on PUT, validate it
+  if (password && password.length < 6) {
+    return res.status(400).json({ error: "❌ Password must be at least 6 characters long." });
+  }
+
+  next();
+}
+
+
 export function handleJsonParseError(err, req, res, next) {
     if (err.type === "entity.parse.failed") {
         return res.status(400).json({ error: "❌ Invalid JSON in request body." })

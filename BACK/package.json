@@ -16,17 +16,16 @@
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
-	
 	"bugs": {
 		"url": "https://github.com/web-rest-api/serverSideJs/issues"
 	},
 	"homepage": "https://github.com/web-rest-api/serverSideJs#readme",
 	"dependencies": {
+		"bcrypt": "^6.0.0",
 		"cors": "^2.8.6",
 		"express": "^5.2.1"
 	},
 	"devDependencies": {
 		"nodemon": "^3.1.14"
 	}
-	
 }

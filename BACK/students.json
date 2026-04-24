@@ -3,7 +3,7 @@
     "id": 1,
     "name": "Alice Martin",
     "email": "alice.martin@epita.fr",
-    "password": "alice123",
+    "password": "$2b$10$ml45xSUGi8vWyXqXEeRHv.apSzfGLNq.ZTi9l53JfoiZ6J6/sGOMC",
     "major": "Computer Science",
     "gpa": 3.8
   },
@@ -11,7 +11,7 @@
     "id": 2,
     "name": "Bob builder",
     "email": "bob.dupont@epita.fr",
-    "password": "bob123",
+    "password": "$2b$10$TRP0gkrZIJsiH2VdJ0f4yuhjViEZzKBYfYhY3HRGJPh.nsmPbqc7C",
     "major": "Civil Engineering",
     "gpa": 0
   },
@@ -19,7 +19,7 @@
     "id": 3,
     "name": "Clara Rousseau",
     "email": "clara.rousseau@epita.fr",
-    "password": "clara123",
+    "password": "$2b$10$J551cugdsDuaybtkPjgDLuUZ2BroNEv9q61aUyHte0UKQgCnTOyCy",
     "major": "Computer Science",
     "gpa": 3.9
   },
@@ -27,16 +27,16 @@
     "id": 4,
     "name": "David Moreau",
     "email": "david.moreau@epita.fr",
-    "password": "david123",
+    "password": "$2b$10$95pScfVOuqHPgJHkZO2eH.2JmotvGnpftizOlooNo296y0jGI/0w6",
     "major": "Computer Science",
     "gpa": 3.5
   },
   {
     "id": 5,
-    "name": "David Moreau",
-    "email": "david.moreau2@epita.fr",
-    "password": "david123",
-    "major": "Computer Science",
+    "name": "Danail Michev",
+    "email": "danail.michev@epita.fr",
+    "password": "$2b$10$lc1jBRpz2r3kVt83ZNFQ4.ceSCUShNtzvB1RR0/rJOo5WRvr9R92.",
+    "major": "Electrical Engineering",
     "gpa": 3.5
   }
 ]
