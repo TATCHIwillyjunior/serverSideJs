@@ -12,6 +12,9 @@ A Node.js Express server that provides a complete REST API for managing student 
 - ✅ CORS enabled for cross-origin requests
 - ✅ Hot-reload with Nodemon for development
 - ✅ Request body validation (required fields, types, formats)
+- ✅ Password validation (required on POST, min 6 chars, optional on PUT)
+- ✅ bcrypt password hashing before storage (cost factor 10)
+- ✅ Protection against double-hashing already-hashed passwords
 - ✅ Duplicate ID and email detection on creation (409 Conflict)
 - ✅ Malformed JSON handled gracefully (400 instead of server crash)
 - ✅ Full data persistence — POST, PUT, and DELETE all write to students.json
@@ -22,6 +25,7 @@ A Node.js Express server that provides a complete REST API for managing student 
 - **Runtime:** Node.js
 - **Framework:** Express 5.2.1
 - **Middleware:** CORS 2.8.6
+- **Password Hashing:** bcrypt 6.0.0
 - **Dev Tool:** Nodemon 3.1.14
 - **Data Format:** JSON
 
@@ -38,7 +42,8 @@ ServerJs/
 │   ├── controllers/        # Route controller logic
 │   │   └── studentsController.js
 │   ├── middleware/         # Request validation and error handling
-│   │   └── middleware.js
+│   │   ├── validation.js   # Body/param validation + JSON error handler
+│   │   └── hashPassword.js # bcrypt hashing middleware
 │   ├── routes/             # Route definitions
 │   │   └── students.js
 │   └── services/           # Business logic services
@@ -153,9 +158,9 @@ POST http://localhost:3000/students
 Content-Type: application/json
 
 {
-  "id": 4,
   "name": "David Chen",
   "email": "david.chen@epita.fr",
+  "password": "secret123",
   "major": "Computer Science",
   "gpa": 3.7
 }
@@ -166,9 +171,10 @@ Content-Type: application/json
 {
   "msg": "✅ Student created successfully",
   "student": {
-    "id": 4,
+    "id": 7,
     "name": "David Chen",
     "email": "david.chen@epita.fr",
+    "password": "$2b$10$...",
     "major": "Computer Science",
     "gpa": 3.7
   }
@@ -199,13 +205,14 @@ PUT http://localhost:3000/students/1
 Content-Type: application/json
 
 {
-  "id": 1,
   "name": "Alice Martin",
   "email": "alice.martin@epita.fr",
   "major": "Data Science",
   "gpa": 3.9
 }
 ```
+
+> `password` is optional on PUT. If provided it must be at least 6 characters and will be hashed before saving.
 
 **Response (Success - 200):**
 ```json
@@ -265,15 +272,15 @@ curl http://localhost:3000/students
 # Get student by ID
 curl http://localhost:3000/students/1
 
-# Create a new student
+# Create a new student (password required)
 curl -X POST http://localhost:3000/students \
   -H "Content-Type: application/json" \
-  -d '{"id":4,"name":"David","email":"david@epita.fr","major":"CS","gpa":3.7}'
+  -d '{"name":"David","email":"david@epita.fr","password":"secret123","major":"CS","gpa":3.7}'
 
-# Update a student
+# Update a student (password optional)
 curl -X PUT http://localhost:3000/students/1 \
   -H "Content-Type: application/json" \
-  -d '{"id":1,"name":"Alice","email":"alice@epita.fr","major":"DS","gpa":3.9}'
+  -d '{"name":"Alice","email":"alice@epita.fr","major":"DS","gpa":3.9}'
 
 # Delete a student
 curl -X DELETE http://localhost:3000/students/1
@@ -309,24 +316,30 @@ The frontend files are located in the `FONT/` folder at the root level. To use t
 
 ## Current Sample Data
 
-The API comes with 3 sample students in `students.json`:
+The API comes with 6 sample students in `students.json`. All passwords are stored as bcrypt hashes:
 
 1. **Alice Martin** - Computer Science, GPA: 3.8
-2. **Bob Dupont** - Computer Science, GPA: 3.5
+2. **Bob builder** - Civil Engineering, GPA: 3.8
 3. **Clara Rousseau** - Computer Science, GPA: 3.9
+4. **David Moreau** - Computer Science, GPA: 3.5
+5. **Danail Michev** - Electrical Engineering, GPA: 3.5
+6. **Eve Dupuis** - Mechanical Engineering, GPA: 3.7
 
 ## Future Enhancements
 
 - [x] Add request body validation
+- [x] Password validation (required on POST, min 6 chars)
+- [x] bcrypt password hashing before storage
 - [x] Duplicate ID and email detection on POST
 - [x] Graceful malformed JSON error handling
 - [x] Implement PUT to actually update students.json
 - [x] Implement DELETE to actually remove from students.json
-- [ ] Implement data persistence (database integration)
+- [ ] Replace students.json with a real database (MongoDB, PostgreSQL, etc.)
 - [ ] Add student search/filter endpoints
 - [ ] Add error logging
-- [ ] Add authentication/authorization
+- [ ] Add authentication/authorization (JWT)
 - [ ] Add API documentation with Swagger
+- [ ] Hide password field from GET responses
 
 ## Project Architecture
 
@@ -357,6 +370,8 @@ The project is organized with a **clear separation of concerns** between fronten
 - CORS is enabled to allow requests from different origins
 - Always set `Content-Type: application/json` on POST and PUT requests — without it, `express.json()` won't parse the body and the middleware will return a 400
 - `validateStudentBody` is shared between POST and PUT — it skips the duplicate ID check on PUT since the student already exists, and skips the duplicate email check for the student's own current email
+- Passwords are hashed with bcrypt (cost factor 10) before being written to `students.json` — plaintext passwords are never stored
+- The `hashPassword` middleware detects already-hashed values (via bcrypt regex `$2b$...`) and skips them to prevent double-hashing on repeated PUT calls
 - Malformed JSON (unparseable request body) is caught by `handleJsonParseError` and returns a clean 400 response instead of crashing to an HTML error page
 - For production, replace `students.json` file storage with a proper database (MongoDB, PostgreSQL, etc.)
 

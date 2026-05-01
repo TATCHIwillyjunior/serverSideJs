@@ -6,7 +6,7 @@ import {
   updateStudentController,
   deleteStudentController
 } from "../controllers/studentsController.js"
-import { validateStudentBody, validateStudentId } from "../middleware/middleware.js"
+import { validateStudentBody, validateStudentId } from "../middleware/validation.js"
 import { validatePassword } from "../middleware/validation.js"
 import { hashPassword } from "../middleware/hashPassword.js"
 

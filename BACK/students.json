@@ -11,9 +11,9 @@
     "id": 2,
     "name": "Bob builder",
     "email": "bob.dupont@epita.fr",
-    "password": "$2b$10$TRP0gkrZIJsiH2VdJ0f4yuhjViEZzKBYfYhY3HRGJPh.nsmPbqc7C",
+    "password": "$2b$10$FW0NJMHteVPFZ.Ro3I/NY.3T7S7Qndy67HuFe2xYrLQy5paGA2Hhi",
     "major": "Civil Engineering",
-    "gpa": 0
+    "gpa": 3.8
   },
   {
     "id": 3,
@@ -38,5 +38,13 @@
     "password": "$2b$10$lc1jBRpz2r3kVt83ZNFQ4.ceSCUShNtzvB1RR0/rJOo5WRvr9R92.",
     "major": "Electrical Engineering",
     "gpa": 3.5
+  },
+  {
+    "id": 6,
+    "name": "Eve Dupuis",
+    "email": "EopEeve.dupuis@epita.fr",
+    "password": "$2b$10$3KsZrGKaI7y9y5EQ.QvLSuMj4nwBN6NWPdNbvxHNC/W3gtI0wG0oa",
+    "major": "Mechanical Engineering",
+    "gpa": 3.7
   }
 ]

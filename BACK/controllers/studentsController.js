@@ -10,9 +10,24 @@ import {
 // Controller functions for handling student-related requests
 
 // GET all students
-export function getStudentsController(req, res) {
-  res.json(getAllStudents())
+export const getStudentsController = async (req, res) => {
+  // Avoid sending all data of students, especially the password even though it's encrypted, in the response. 
+  // Instead, we can return only the necessary information about each student. 
+  // This way, we can protect sensitive information while still providing useful data to the users.
+  try {
+    const students =  await getAllStudents()
+
+    // Create DTO
+    const studentsDTO = students.map((student) => ({
+      id: student.id,
+      email: student.email
+    }))
+    res.status(200).json(studentsDTO)
+  } catch (error) {
+    res.status(404).json({ msg: "Error fetching students" })
+  }
 }
+
 
 // GET student by ID
 export function getStudentByIdController(req, res) {
@@ -21,13 +36,24 @@ export function getStudentByIdController(req, res) {
 
 ////// POST or CREATE a new student
 
-/// 🚨🚨🚨🚨 FOR THE PURPOSE OF DEVELOPMENT THE PASSWORD WILL BE MADE PUBLIC 🚨🚨
+/// 🚨🚨🚨🚨 FOR THE PURPOSE OF DEVELOPMENT THE PASSWORD WILL BE MADE PUBLIC 🚨🚨 -----> NO MORE Public as it's encrypted
 //
-// 1. In Later changes, password will be hashed and not stored in plain text, 
-//  and the API will not return the password in the response when creating or 
-//  retrieving student data. 
-// 2. The password associated to each student in the test Json file (being students.json) will be changed
+// ******************************************************************************************************
+// *  1. In Later changes, password will be hashed and not stored in plain text,                       **
+// *     and the API will not return the password in the response when creating or                     **
+// *     retrieving student data.                                                                      **
+// ******************************************************************************************************
+// ** - ✅ password will be hashed and not stored in plain text                                        **
+// ** - ❌ API will not return the password in the response when creating or retrieving student data.  **
+// *******************************************************************************************************
 //
+// ****************************************************************************************************************
+// *  2. The password associated to each student in the test Json file (being students.json) will be changed      * ----> Passwords has been changed before the hashing
+// ****************************************************************************************************************
+// ** - ✅ The password associated to each student in the test Json file (being students.json) has been changed  **
+// ****************************************************************************************************************
+//
+
 
 // further improvement could be checking if the new student data is valid (e.g., has required fields like name, age, etc.) before creating the student.
 // If the data is invalid, I return a 400 Bad Request error with a message indicating what is wrong with the data. This would make the API more robust and user-friendly.

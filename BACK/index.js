@@ -3,7 +3,7 @@ import cors from "cors"
 //import studentsData from "./students.json" with { type: "json" }
 
 import studentsRoutes from "./routes/students.js"
-import { handleJsonParseError } from "./middleware/middleware.js"
+import { handleJsonParseError } from "./middleware/validation.js"
 
 const app = express()
 const port = 3000
