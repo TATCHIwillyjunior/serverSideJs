@@ -11,8 +11,8 @@
     "id": 2,
     "name": "Bob builder",
     "email": "bob.dupont@epita.fr",
-    "password": "$2b$10$FW0NJMHteVPFZ.Ro3I/NY.3T7S7Qndy67HuFe2xYrLQy5paGA2Hhi",
-    "major": "Civil Engineering",
+    "password": "$2b$10$oED/q8Zr/ZuKjV7eVem/AOcUP5y6nJcXrUvArLZfV0PVRVotiYBNK",
+    "major": "Civil Engineering ghgf",
     "gpa": 3.8
   },
   {
@@ -46,5 +46,29 @@
     "password": "$2b$10$3KsZrGKaI7y9y5EQ.QvLSuMj4nwBN6NWPdNbvxHNC/W3gtI0wG0oa",
     "major": "Mechanical Engineering",
     "gpa": 3.7
+  },
+  {
+    "id": 7,
+    "name": "Frank Leclerc",
+    "email": "frank.leclerc@epita.fr",
+    "password": "$2b$10$kuQ5L52PRKHlF6/y84tBFO33pOXEufpuPSxOaadkLHwIG4R3BqByW",
+    "major": " Cloud Computing",
+    "gpa": 3.7
+  },
+  {
+    "id": 8,
+    "name": "Grace Morel",
+    "email": "grace.morel@epita.fr",
+    "password": "$2b$10$p5w9ld2n5zkZjuRmixnACOsqvAvGIB0Tp/uyltsBpLe09s3X.to1a",
+    "major": "Biomedical Engineering",
+    "gpa": 3.8
+  },
+  {
+    "id": 9,
+    "name": "James Mike",
+    "email": "james.mike@epita.fr",
+    "password": "$2b$10$.4jXgso6eIyyJp65xM5ZXOg9RmS8sKSMoOKdEmd4X0hGiqMrp7xti",
+    "major": "Hitman",
+    "gpa": 3.8
   }
 ]

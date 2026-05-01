@@ -19,6 +19,10 @@ A Node.js Express server that provides a complete REST API for managing student 
 - ✅ Malformed JSON handled gracefully (400 instead of server crash)
 - ✅ Full data persistence — POST, PUT, and DELETE all write to students.json
 - ✅ PUT validates the body the same way POST does (via shared middleware)
+- ✅ JWT issued on register (POST /students) and login (POST /login)
+- ✅ Protected routes — GET /:id, PUT, DELETE require a valid Bearer token
+- ✅ DTO responses — only `id` and `email` are ever sent back to the client
+- ✅ Environment variables via dotenv (.env never committed)
 
 ## Tech Stack
 
@@ -26,6 +30,8 @@ A Node.js Express server that provides a complete REST API for managing student 
 - **Framework:** Express 5.2.1
 - **Middleware:** CORS 2.8.6
 - **Password Hashing:** bcrypt 6.0.0
+- **Authentication:** jsonwebtoken 9.0.3
+- **Environment:** dotenv 17.4.2
 - **Dev Tool:** Nodemon 3.1.14
 - **Data Format:** JSON
 
@@ -39,13 +45,17 @@ ServerJs/
 │   ├── package-lock.json   # Dependency lock file
 │   ├── students.json       # Sample student data
 │   ├── student_report.md   # Generated student report
+│   ├── .env                # JWT_SECRET and JWT_EXPIRES_IN (never committed)
 │   ├── controllers/        # Route controller logic
-│   │   └── studentsController.js
+│   │   ├── studentsController.js
+│   │   └── authController.js   # Login logic
 │   ├── middleware/         # Request validation and error handling
 │   │   ├── validation.js   # Body/param validation + JSON error handler
-│   │   └── hashPassword.js # bcrypt hashing middleware
+│   │   ├── hashPassword.js # bcrypt hashing middleware
+│   │   └── auth.js         # JWT Bearer token verification
 │   ├── routes/             # Route definitions
-│   │   └── students.js
+│   │   ├── students.js
+│   │   └── auth.js         # POST /login
 │   └── services/           # Business logic services
 │       └── studentsServices.js
 ├── FONT/                   # Frontend files (HTML, CSS, JS)
@@ -71,7 +81,13 @@ cd BACK
 npm install
 ```
 
-3. **Start the development server:**
+3. **Create a `.env` file in the `BACK/` folder:**
+```
+JWT_SECRET=your_super_secret_key_change_this
+JWT_EXPIRES_IN=24h
+```
+
+4. **Start the development server:**
 ```bash
 npm run dev
 ```

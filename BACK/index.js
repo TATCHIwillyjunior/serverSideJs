@@ -1,8 +1,9 @@
+import "dotenv/config"
 import express from "express"
 import cors from "cors"
-//import studentsData from "./students.json" with { type: "json" }
 
 import studentsRoutes from "./routes/students.js"
+import authRoutes from "./routes/auth.js"
 import { handleJsonParseError } from "./middleware/validation.js"
 
 const app = express()
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 	res.json({ msg: "Hello Willy! Your server is running..." })	
 })
 
+app.use(authRoutes)
 app.use("/students", studentsRoutes)
 
 app.use(handleJsonParseError)
