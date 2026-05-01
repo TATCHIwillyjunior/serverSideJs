@@ -102,71 +102,112 @@ The server will start on `http://localhost:3000/` with hot-reload enabled via No
 
 ## API Endpoints
 
+### Route overview
+
+| Method | Route | Auth required | Description |
+|---|---|---|---|
+| GET | `/` | No | Health check |
+| GET | `/students` | No | Get all students (DTO) |
+| POST | `/students` | No | Register — creates student, returns token + DTO |
+| POST | `/login` | No | Login — returns token + DTO |
+| GET | `/students/:id` | Yes | Get student by ID (DTO) |
+| PUT | `/students/:id` | Yes | Update student, returns DTO |
+| DELETE | `/students/:id` | Yes | Delete student |
+
+Protected routes require the header:
+```
+Authorization: Bearer <token>
+```
+
+> All responses use a **DTO** — only `id` and `email` are returned. Name, major, GPA, and password never leave the server.
+
+---
+
 ### GET /
 Returns a welcome message.
 
-**Request:**
-```
-GET http://localhost:3000/
-```
-
 **Response:**
 ```json
+{ "msg": "Hello Willy! Your server is running..." }
+```
+
+---
+
+### POST /login
+Authenticates an existing student and returns a JWT.
+
+**Request:**
+```
+POST http://localhost:3000/login
+Content-Type: application/json
+
 {
-  "msg": "Hello Willy! Your server is running..."
+  "email": "alice.martin@epita.fr",
+  "password": "alice123"
 }
 ```
 
+**Response (200):**
+```json
+{
+  "token": "eyJhbGci...",
+  "student": { "id": 1, "email": "alice.martin@epita.fr" }
+}
+```
+
+**Response (400 - Missing fields):**
+```json
+{ "error": "❌ Email and password are required." }
+```
+
+**Response (401 - Wrong credentials):**
+```json
+{ "error": "❌ Invalid credentials." }
+```
+
+---
+
 ### GET /students
-Retrieves all students.
+Retrieves all students. Public. Returns DTO array.
 
-**Request:**
-```
-GET http://localhost:3000/students
-```
-
-**Response:**
+**Response (200):**
 ```json
 [
-  {
-    "id": 1,
-    "name": "Alice Martin",
-    "email": "alice.martin@epita.fr",
-    "major": "Computer Science",
-    "gpa": 3.8
-  },
-  ...
+  { "id": 1, "email": "alice.martin@epita.fr" },
+  { "id": 2, "email": "bob.dupont@epita.fr" }
 ]
 ```
 
+---
+
 ### GET /students/:id
-Retrieves a specific student by ID.
+Retrieves a specific student by ID. Requires token.
 
 **Request:**
 ```
 GET http://localhost:3000/students/1
+Authorization: Bearer <token>
 ```
 
-**Response (Success - 200):**
+**Response (200):**
 ```json
-{
-  "id": 1,
-  "name": "Alice Martin",
-  "email": "alice.martin@epita.fr",
-  "major": "Computer Science",
-  "gpa": 3.8
-}
+{ "id": 1, "email": "alice.martin@epita.fr" }
 ```
 
-**Response (Not Found - 404):**
+**Response (401 - Missing or invalid token):**
 ```json
-{
-  "error": "❌❌ Student was not found"
-}
+{ "error": "❌ Authorization token required." }
 ```
+
+**Response (404 - Not found):**
+```json
+{ "error": "❌❌ Student was not found" }
+```
+
+---
 
 ### POST /students
-Creates a new student.
+Creates a new student (register). Public. Returns JWT + DTO.
 
 **Request:**
 ```
@@ -186,14 +227,8 @@ Content-Type: application/json
 ```json
 {
   "msg": "✅ Student created successfully",
-  "student": {
-    "id": 7,
-    "name": "David Chen",
-    "email": "david.chen@epita.fr",
-    "password": "$2b$10$...",
-    "major": "Computer Science",
-    "gpa": 3.7
-  }
+  "token": "eyJhbGci...",
+  "student": { "id": 10, "email": "david.chen@epita.fr" }
 }
 ```
 
@@ -207,17 +242,20 @@ Content-Type: application/json
 { "error": "❌ Invalid JSON in request body." }
 ```
 
-**Response (409 - Duplicate ID or email):**
+**Response (409 - Duplicate email):**
 ```json
 { "error": "❌ A student with this email already exists." }
 ```
 
+---
+
 ### PUT /students/:id
-Updates an existing student.
+Updates an existing student. Requires token. Returns DTO.
 
 **Request:**
 ```
 PUT http://localhost:3000/students/1
+Authorization: Bearer <token>
 Content-Type: application/json
 
 {
@@ -228,23 +266,22 @@ Content-Type: application/json
 }
 ```
 
-> `password` is optional on PUT. If provided it must be at least 6 characters and will be hashed before saving.
+> `password` is optional on PUT. If provided it must be at least 6 characters and will be re-hashed before saving.
 
-**Response (Success - 200):**
+**Response (200):**
 ```json
 {
   "msg": "✅ Student updated successfully",
-  "student": {
-    "id": 1,
-    "name": "Alice Martin",
-    "email": "alice.martin@epita.fr",
-    "major": "Data Science",
-    "gpa": 3.9
-  }
+  "student": { "id": 1, "email": "alice.martin@epita.fr" }
 }
 ```
 
-**Response (400 - Missing body or invalid field):**
+**Response (401 - Missing or invalid token):**
+```json
+{ "error": "❌ Authorization token required." }
+```
+
+**Response (400 - Invalid field):**
 ```json
 { "error": "❌ Request body is missing or not valid JSON. Make sure to set Content-Type: application/json." }
 ```
@@ -259,20 +296,28 @@ Content-Type: application/json
 { "error": "❌ A student with this email already exists." }
 ```
 
+---
+
 ### DELETE /students/:id
-Deletes a student.
+Deletes a student. Requires token.
 
 **Request:**
 ```
 DELETE http://localhost:3000/students/1
+Authorization: Bearer <token>
 ```
 
-**Response (Success - 200):**
+**Response (200):**
 ```json
 { "msg": "✅ Student deleted successfully" }
 ```
 
-**Response (Not Found - 404):**
+**Response (401 - Missing or invalid token):**
+```json
+{ "error": "❌ Authorization token required." }
+```
+
+**Response (404 - Not found):**
 ```json
 { "error": "❌❌ Student was not found" }
 ```
@@ -282,24 +327,32 @@ DELETE http://localhost:3000/students/1
 ### Using cURL
 
 ```bash
-# Get all students
-curl http://localhost:3000/students
+# Login and capture token
+TOKEN=$(curl -s -X POST http://localhost:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice.martin@epita.fr","password":"alice123"}' | jq -r '.token')
 
-# Get student by ID
-curl http://localhost:3000/students/1
-
-# Create a new student (password required)
+# Register (also returns a token)
 curl -X POST http://localhost:3000/students \
   -H "Content-Type: application/json" \
   -d '{"name":"David","email":"david@epita.fr","password":"secret123","major":"CS","gpa":3.7}'
 
-# Update a student (password optional)
+# Get all students (public)
+curl http://localhost:3000/students
+
+# Get student by ID (requires token)
+curl http://localhost:3000/students/1 \
+  -H "Authorization: Bearer $TOKEN"
+
+# Update a student (requires token, password optional)
 curl -X PUT http://localhost:3000/students/1 \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"name":"Alice","email":"alice@epita.fr","major":"DS","gpa":3.9}'
 
-# Delete a student
-curl -X DELETE http://localhost:3000/students/1
+# Delete a student (requires token)
+curl -X DELETE http://localhost:3000/students/1 \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 ### Using Postman
@@ -332,7 +385,7 @@ The frontend files are located in the `FONT/` folder at the root level. To use t
 
 ## Current Sample Data
 
-The API comes with 6 sample students in `students.json`. All passwords are stored as bcrypt hashes:
+The API comes with 9 sample students in `students.json`. All passwords are stored as bcrypt hashes:
 
 1. **Alice Martin** - Computer Science, GPA: 3.8
 2. **Bob builder** - Civil Engineering, GPA: 3.8
@@ -340,6 +393,9 @@ The API comes with 6 sample students in `students.json`. All passwords are store
 4. **David Moreau** - Computer Science, GPA: 3.5
 5. **Danail Michev** - Electrical Engineering, GPA: 3.5
 6. **Eve Dupuis** - Mechanical Engineering, GPA: 3.7
+7. **Frank Leclerc** - Cloud Computing, GPA: 3.7
+8. **Grace Morel** - Biomedical Engineering, GPA: 3.8
+9. **James Mike** - Hitman, GPA: 3.8
 
 ## Future Enhancements
 
@@ -350,12 +406,13 @@ The API comes with 6 sample students in `students.json`. All passwords are store
 - [x] Graceful malformed JSON error handling
 - [x] Implement PUT to actually update students.json
 - [x] Implement DELETE to actually remove from students.json
+- [x] JWT authentication (issued on register and login)
+- [x] Protected routes with Bearer token middleware
+- [x] DTO responses — only id and email sent to client
 - [ ] Replace students.json with a real database (MongoDB, PostgreSQL, etc.)
 - [ ] Add student search/filter endpoints
 - [ ] Add error logging
-- [ ] Add authentication/authorization (JWT)
 - [ ] Add API documentation with Swagger
-- [ ] Hide password field from GET responses
 
 ## Project Architecture
 
@@ -389,5 +446,8 @@ The project is organized with a **clear separation of concerns** between fronten
 - Passwords are hashed with bcrypt (cost factor 10) before being written to `students.json` — plaintext passwords are never stored
 - The `hashPassword` middleware detects already-hashed values (via bcrypt regex `$2b$...`) and skips them to prevent double-hashing on repeated PUT calls
 - Malformed JSON (unparseable request body) is caught by `handleJsonParseError` and returns a clean 400 response instead of crashing to an HTML error page
+- JWT is signed with `JWT_SECRET` from `.env` — change it to a strong random string before deploying; the default value in the repo is a placeholder only
+- Tokens expire after `JWT_EXPIRES_IN` (default `24h`) — after expiry the client must log in again via `POST /login`
+- `authenticate` middleware runs before `validateStudentId` on protected routes, so unauthorized requests are rejected without hitting the database
 - For production, replace `students.json` file storage with a proper database (MongoDB, PostgreSQL, etc.)
 
