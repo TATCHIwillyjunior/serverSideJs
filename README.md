@@ -372,7 +372,7 @@ The project is organized with a **clear separation of concerns** between fronten
 
 - **FONT/** - Frontend client (HTML/CSS/JavaScript)
   - Communicates with the backend via HTTP requests
-  - Displays student data in the UI
+  - Displays student data in the UI.
 
 ### Design Patterns Used
 
