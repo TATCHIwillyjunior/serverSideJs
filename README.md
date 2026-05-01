@@ -1,27 +1,23 @@
-# Student Management REST API
+# School Management REST API
 
-A Node.js Express server that provides a complete REST API for managing student records with CRUD operations (Create, Read, Update, Delete).
+A Node.js Express server providing a complete REST API for managing school resources — students, courses, professors, and rooms — with full CRUD operations, JWT authentication, and a unified JSON database.
 
 ## Features
 
-- ✅ Get all students
-- ✅ Get a student by ID
-- ✅ Create a new student
-- ✅ Update an existing student
-- ✅ Delete a student
-- ✅ CORS enabled for cross-origin requests
-- ✅ Hot-reload with Nodemon for development
-- ✅ Request body validation (required fields, types, formats)
+- ✅ Full CRUD for students, courses, professors, and rooms
+- ✅ Unified `db.json` — one file, six collections with relational links (foreign keys via IDs)
+- ✅ JWT issued on register (POST /students) and login (POST /login)
+- ✅ Protected routes — mutating endpoints require a valid Bearer token
+- ✅ DTO responses — password never leaves the server
+- ✅ Request body validation per resource (required fields, types, formats)
 - ✅ Password validation (required on POST, min 6 chars, optional on PUT)
 - ✅ bcrypt password hashing before storage (cost factor 10)
 - ✅ Protection against double-hashing already-hashed passwords
-- ✅ Duplicate ID and email detection on creation (409 Conflict)
+- ✅ Course validation checks that professor_id and room_id exist in db.json
+- ✅ Duplicate email detection for students and professors (409 Conflict)
 - ✅ Malformed JSON handled gracefully (400 instead of server crash)
-- ✅ Full data persistence — POST, PUT, and DELETE all write to students.json
-- ✅ PUT validates the body the same way POST does (via shared middleware)
-- ✅ JWT issued on register (POST /students) and login (POST /login)
-- ✅ Protected routes — GET /:id, PUT, DELETE require a valid Bearer token
-- ✅ DTO responses — only `id` and `email` are ever sent back to the client
+- ✅ CORS enabled for cross-origin requests
+- ✅ Hot-reload with Nodemon for development
 - ✅ Environment variables via dotenv (.env never committed)
 
 ## Tech Stack
@@ -39,32 +35,40 @@ A Node.js Express server that provides a complete REST API for managing student 
 
 ```
 ServerJs/
-├── BACK/                    # Backend server code
-│   ├── index.js            # Main Express server with all API endpoints
-│   ├── package.json        # Project dependencies and scripts
-│   ├── package-lock.json   # Dependency lock file
-│   ├── students.json       # Sample student data
-│   ├── student_report.md   # Generated student report
-│   ├── .env                # JWT_SECRET and JWT_EXPIRES_IN (never committed)
-│   ├── controllers/        # Route controller logic
+├── BACK/
+│   ├── index.js                  # Entry point — mounts all routers
+│   ├── db.json                   # Unified database (students, courses, professors, rooms, schools, enrollments)
+│   ├── package.json
+│   ├── .env                      # JWT_SECRET, JWT_EXPIRES_IN (never committed)
+│   ├── controllers/
 │   │   ├── studentsController.js
-│   │   └── authController.js   # Login logic
-│   ├── middleware/         # Request validation and error handling
-│   │   ├── validation.js   # Body/param validation + JSON error handler
-│   │   ├── hashPassword.js # bcrypt hashing middleware
-│   │   └── auth.js         # JWT Bearer token verification
-│   ├── routes/             # Route definitions
+│   │   ├── coursesController.js
+│   │   ├── professorsController.js
+│   │   ├── roomsController.js
+│   │   └── authController.js     # Login logic
+│   ├── middleware/
+│   │   ├── auth.js               # JWT Bearer token verification
+│   │   ├── validation.js         # Student body/param validation + JSON error handler
+│   │   ├── hashPassword.js       # bcrypt hashing
+│   │   ├── courseValidation.js   # Course body/param validation
+│   │   ├── professorValidation.js
+│   │   └── roomValidation.js
+│   ├── routes/
 │   │   ├── students.js
-│   │   └── auth.js         # POST /login
-│   └── services/           # Business logic services
-│       └── studentsServices.js
-├── FONT/                   # Frontend files (HTML, CSS, JS)
-│   ├── index.html         # Main HTML file
-│   ├── script.js          # Frontend API integration
-│   └── style.css          # Styling
-├── README.md              # This file
-├── package.json           # Root package configuration
-└── serverSideJs/          # Submodule/additional server code
+│   │   ├── courses.js
+│   │   ├── professors.js
+│   │   ├── rooms.js
+│   │   └── auth.js               # POST /login
+│   └── services/
+│       ├── studentsServices.js
+│       ├── coursesServices.js
+│       ├── professorsServices.js
+│       └── roomsServices.js
+├── FONT/                         # Frontend (HTML, CSS, JS)
+│   ├── index.html
+│   ├── script.js
+│   └── style.css
+└── README.md
 ```
 
 ## Installation
@@ -104,22 +108,48 @@ The server will start on `http://localhost:3000/` with hot-reload enabled via No
 
 ### Route overview
 
-| Method | Route | Auth required | Description |
+Protected routes require: `Authorization: Bearer <token>`
+
+**Auth**
+| Method | Route | Auth | Description |
 |---|---|---|---|
-| GET | `/` | No | Health check |
-| GET | `/students` | No | Get all students (DTO) |
-| POST | `/students` | No | Register — creates student, returns token + DTO |
 | POST | `/login` | No | Login — returns token + DTO |
+
+**Students**
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/students` | No | Get all students (DTO) |
+| POST | `/students` | No | Register — returns token + DTO |
 | GET | `/students/:id` | Yes | Get student by ID (DTO) |
-| PUT | `/students/:id` | Yes | Update student, returns DTO |
+| PUT | `/students/:id` | Yes | Update student |
 | DELETE | `/students/:id` | Yes | Delete student |
 
-Protected routes require the header:
-```
-Authorization: Bearer <token>
-```
+**Courses**
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/courses` | No | Get all courses |
+| GET | `/courses/:id` | No | Get course by ID |
+| POST | `/courses` | Yes | Create course |
+| PUT | `/courses/:id` | Yes | Update course |
+| DELETE | `/courses/:id` | Yes | Delete course |
 
-> All responses use a **DTO** — only `id` and `email` are returned. Name, major, GPA, and password never leave the server.
+**Professors**
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/professors` | No | Get all professors |
+| GET | `/professors/:id` | No | Get professor by ID |
+| POST | `/professors` | Yes | Create professor |
+| PUT | `/professors/:id` | Yes | Update professor |
+| DELETE | `/professors/:id` | Yes | Delete professor |
+
+**Rooms**
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/rooms` | No | Get all rooms |
+| GET | `/rooms/:id` | No | Get room by ID |
+| POST | `/rooms` | Yes | Create room |
+| PUT | `/rooms/:id` | Yes | Update room |
+| DELETE | `/rooms/:id` | Yes | Delete room |
 
 ---
 
@@ -383,19 +413,30 @@ The frontend files are located in the `FONT/` folder at the root level. To use t
 
 **Important:** Make sure the backend server is running before accessing the frontend, as it relies on the API endpoints.
 
-## Current Sample Data
+## Sample Data
 
-The API comes with 9 sample students in `students.json`. All passwords are stored as bcrypt hashes:
+All data lives in `db.json`. Passwords are stored as bcrypt hashes.
 
-1. **Alice Martin** - Computer Science, GPA: 3.8
-2. **Bob builder** - Civil Engineering, GPA: 3.8
-3. **Clara Rousseau** - Computer Science, GPA: 3.9
-4. **David Moreau** - Computer Science, GPA: 3.5
-5. **Danail Michev** - Electrical Engineering, GPA: 3.5
-6. **Eve Dupuis** - Mechanical Engineering, GPA: 3.7
-7. **Frank Leclerc** - Cloud Computing, GPA: 3.7
-8. **Grace Morel** - Biomedical Engineering, GPA: 3.8
-9. **James Mike** - Hitman, GPA: 3.8
+**Students (9)**
+1. Alice Martin — Computer Science, GPA 3.8, EPITA
+2. Bob builder — Civil Engineering, GPA 3.8, EPITA
+3. Clara Rousseau — Computer Science, GPA 3.9, EPITA
+4. David Moreau — Computer Science, GPA 3.5, EPITA
+5. Danail Michev — Electrical Engineering, GPA 3.5, EPITECH
+6. Eve Dupuis — Mechanical Engineering, GPA 3.7, EPITECH
+7. Frank Leclerc — Cloud Computing, GPA 3.7, EPITA
+8. Grace Morel — Biomedical Engineering, GPA 3.8, EPITECH
+9. James Mike — Hitman, GPA 3.8, EPITECH
+
+**Schools (2):** EPITA, EPITECH
+
+**Professors (5):** Dupont, Martin, Rousseau, Leclerc, Morel
+
+**Rooms (4):** A101 (Lecture Hall), B204 (Lab), C301 (Seminar), A102 (Lecture Hall)
+
+**Courses (5):** Algorithms, Web Development, Database Systems, Operating Systems, Computer Networks
+
+**Enrollments (16):** students linked to courses via `{ student_id, course_id }` pairs
 
 ## Future Enhancements
 
@@ -404,13 +445,16 @@ The API comes with 9 sample students in `students.json`. All passwords are store
 - [x] bcrypt password hashing before storage
 - [x] Duplicate ID and email detection on POST
 - [x] Graceful malformed JSON error handling
-- [x] Implement PUT to actually update students.json
-- [x] Implement DELETE to actually remove from students.json
+- [x] Implement PUT to actually update the data file
+- [x] Implement DELETE to actually remove from the data file
 - [x] JWT authentication (issued on register and login)
 - [x] Protected routes with Bearer token middleware
-- [x] DTO responses — only id and email sent to client
-- [ ] Replace students.json with a real database (MongoDB, PostgreSQL, etc.)
-- [ ] Add student search/filter endpoints
+- [x] DTO responses — password never sent to client
+- [x] Unified db.json with relational data (courses, professors, rooms, schools, enrollments)
+- [x] Full CRUD for courses, professors, and rooms
+- [x] Cross-resource validation (course professor_id and room_id checked against db)
+- [ ] Replace db.json with a real database (MongoDB, PostgreSQL, etc.)
+- [ ] Add search/filter endpoints per resource
 - [ ] Add error logging
 - [ ] Add API documentation with Swagger
 
@@ -439,15 +483,15 @@ The project is organized with a **clear separation of concerns** between fronten
 
 ## Notes
 
-- POST, PUT, and DELETE all persist changes directly to `students.json` using `fs.readFileSync`/`writeFileSync` — no in-memory state, every read goes straight to the file
-- CORS is enabled to allow requests from different origins
-- Always set `Content-Type: application/json` on POST and PUT requests — without it, `express.json()` won't parse the body and the middleware will return a 400
-- `validateStudentBody` is shared between POST and PUT — it skips the duplicate ID check on PUT since the student already exists, and skips the duplicate email check for the student's own current email
-- Passwords are hashed with bcrypt (cost factor 10) before being written to `students.json` — plaintext passwords are never stored
-- The `hashPassword` middleware detects already-hashed values (via bcrypt regex `$2b$...`) and skips them to prevent double-hashing on repeated PUT calls
-- Malformed JSON (unparseable request body) is caught by `handleJsonParseError` and returns a clean 400 response instead of crashing to an HTML error page
-- JWT is signed with `JWT_SECRET` from `.env` — change it to a strong random string before deploying; the default value in the repo is a placeholder only
-- Tokens expire after `JWT_EXPIRES_IN` (default `24h`) — after expiry the client must log in again via `POST /login`
-- `authenticate` middleware runs before `validateStudentId` on protected routes, so unauthorized requests are rejected without hitting the database
-- For production, replace `students.json` file storage with a proper database (MongoDB, PostgreSQL, etc.)
+- All services read and write to `db.json` under their own key (`students`, `courses`, `professors`, `rooms`) — every request reads fresh from disk, no in-memory state
+- All four services share the same `db.json` file; a write by one service preserves the other collections untouched
+- Always set `Content-Type: application/json` on POST and PUT requests — without it, `express.json()` won't parse the body and validation will return a 400
+- Passwords are hashed with bcrypt (cost factor 10) before being written — plaintext passwords are never stored
+- `hashPassword` detects already-hashed values (bcrypt regex `$2b$...`) and skips them to prevent double-hashing on repeated PUT calls
+- Course `POST`/`PUT` validates that `professor_id` and `room_id` reference records that actually exist in `db.json` before writing
+- `authenticate` middleware runs before any ID lookup on protected routes — unauthorized requests are rejected before touching the database
+- JWT is signed with `JWT_SECRET` from `.env` — use a strong random string in production; the placeholder in the repo is for development only
+- Tokens expire after `JWT_EXPIRES_IN` (default `24h`) — clients must call `POST /login` again after expiry
+- Malformed JSON bodies are caught by `handleJsonParseError` and return a clean 400 instead of an HTML crash page
+- For production, replace `db.json` with a real database (MongoDB, PostgreSQL, etc.)
 

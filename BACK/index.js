@@ -3,6 +3,9 @@ import express from "express"
 import cors from "cors"
 
 import studentsRoutes from "./routes/students.js"
+import coursesRoutes from "./routes/courses.js"
+import professorsRoutes from "./routes/professors.js"
+import roomsRoutes from "./routes/rooms.js"
 import authRoutes from "./routes/auth.js"
 import { handleJsonParseError } from "./middleware/validation.js"
 
@@ -19,6 +22,9 @@ app.get("/", (req, res) => {
 
 app.use(authRoutes)
 app.use("/students", studentsRoutes)
+app.use("/courses", coursesRoutes)
+app.use("/professors", professorsRoutes)
+app.use("/rooms", roomsRoutes)
 
 app.use(handleJsonParseError)
 

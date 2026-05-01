@@ -7,7 +7,8 @@ import {
 } from "../services/studentsServices.js"
 
 export function toDTO(student) {
-  return { id: student.id, email: student.email }
+  const { password, ...dto } = student
+  return dto
 }
 
 // GET all students

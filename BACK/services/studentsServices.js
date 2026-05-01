@@ -4,43 +4,43 @@ import { dirname, join } from "path"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-const DATA_PATH = join(__dirname, "../students.json")
+const DATA_PATH = join(__dirname, "../db.json")
 
-function readData() {
+function readDB() {
     return JSON.parse(readFileSync(DATA_PATH, "utf-8"))
 }
 
-function writeData(data) {
-    writeFileSync(DATA_PATH, JSON.stringify(data, null, 2))
+function writeDB(db) {
+    writeFileSync(DATA_PATH, JSON.stringify(db, null, 2))
 }
 
 export function getAllStudents() {
-    return readData()
+    return readDB().students
 }
 
 export function getStudentById(id) {
-    return readData().find(s => s.id === id)
+    return readDB().students.find(s => s.id === id)
 }
 
 export function createStudent(data) {
-    const students = readData()
-    const newId = data.id ?? Math.max(...students.map(s => s.id)) + 1
+    const db = readDB()
+    const newId = data.id ?? Math.max(...db.students.map(s => s.id)) + 1
     const newStudent = { ...data, id: newId }
-    students.push(newStudent)
-    writeData(students)
+    db.students.push(newStudent)
+    writeDB(db)
     return newStudent
 }
 
 export function updateStudent(id, data) {
-    const students = readData()
-    const index = students.findIndex(s => s.id === id)
-    students[index] = { ...students[index], ...data, id }
-    writeData(students)
-    return students[index]
+    const db = readDB()
+    const index = db.students.findIndex(s => s.id === id)
+    db.students[index] = { ...db.students[index], ...data, id }
+    writeDB(db)
+    return db.students[index]
 }
 
 export function deleteStudent(id) {
-    const students = readData()
-    const filtered = students.filter(s => s.id !== id)
-    writeData(filtered)
+    const db = readDB()
+    db.students = db.students.filter(s => s.id !== id)
+    writeDB(db)
 }
