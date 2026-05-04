@@ -12,10 +12,10 @@ import { authenticate } from "../middleware/auth.js"
 const professorRouter = express.Router()
 
 // Public routes
-professorRouter.get("/", getProfessorsController)
-professorRouter.get("/:id", validateProfessorId, getProfessorByIdController)
 
 // Protected routes
+professorRouter.get("/", authenticate, getProfessorsController)
+professorRouter.get("/:id", authenticate, validateProfessorId, getProfessorByIdController)
 professorRouter.post("/", authenticate, validateProfessorBody, createProfessorController)
 professorRouter.put("/:id", authenticate, validateProfessorId, validateProfessorBody, updateProfessorController)
 professorRouter.delete("/:id", authenticate, validateProfessorId, deleteProfessorController)

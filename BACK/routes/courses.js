@@ -12,10 +12,11 @@ import { authenticate } from "../middleware/auth.js"
 const courseRouter = express.Router()
 
 // Public routes
-courseRouter.get("/", getCoursesController)
-courseRouter.get("/:id", validateCourseId, getCourseByIdController)
+
 
 // Protected routes
+courseRouter.get("/", authenticate, getCoursesController)
+courseRouter.get("/:id", authenticate, validateCourseId, getCourseByIdController)
 courseRouter.post("/", authenticate, validateCourseBody, createCourseController)
 courseRouter.put("/:id", authenticate, validateCourseId, validateCourseBody, updateCourseController)
 courseRouter.delete("/:id", authenticate, validateCourseId, deleteCourseController)

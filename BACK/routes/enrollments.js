@@ -12,11 +12,12 @@ import { authenticate } from "../middleware/auth.js"
 const enrollmentRouter = express.Router()
 
 // Public routes — /student/:studentId must come before /:id
-enrollmentRouter.get("/", getEnrollmentsController)
-enrollmentRouter.get("/student/:studentId", getEnrollmentsByStudentController)
-enrollmentRouter.get("/:id", validateEnrollmentId, getEnrollmentByIdController)
+
 
 // Protected routes
+enrollmentRouter.get("/", authenticate, getEnrollmentsController)
+enrollmentRouter.get("/student/:studentId", authenticate, getEnrollmentsByStudentController)
+enrollmentRouter.get("/:id", authenticate, validateEnrollmentId, getEnrollmentByIdController)
 enrollmentRouter.post("/", authenticate, validateEnrollmentBody, createEnrollmentController)
 enrollmentRouter.delete("/:id", authenticate, validateEnrollmentId, deleteEnrollmentController)
 

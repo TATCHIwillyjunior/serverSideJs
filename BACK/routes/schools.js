@@ -12,10 +12,11 @@ import { authenticate } from "../middleware/auth.js"
 const schoolRouter = express.Router()
 
 // Public routes
-schoolRouter.get("/", getSchoolsController)
-schoolRouter.get("/:id", validateSchoolId, getSchoolByIdController)
+
 
 // Protected routes
+schoolRouter.get("/", authenticate, getSchoolsController)
+schoolRouter.get("/:id", authenticate, validateSchoolId, getSchoolByIdController)
 schoolRouter.post("/", authenticate, validateSchoolBody, createSchoolController)
 schoolRouter.put("/:id", authenticate, validateSchoolId, validateSchoolBody, updateSchoolController)
 schoolRouter.delete("/:id", authenticate, validateSchoolId, deleteSchoolController)

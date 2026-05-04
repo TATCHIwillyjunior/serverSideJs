@@ -12,10 +12,11 @@ import { authenticate } from "../middleware/auth.js"
 const roomRouter = express.Router()
 
 // Public routes
-roomRouter.get("/", getRoomsController)
-roomRouter.get("/:id", validateRoomId, getRoomByIdController)
+
 
 // Protected routes
+roomRouter.get("/", authenticate, getRoomsController)
+roomRouter.get("/:id", authenticate, validateRoomId, getRoomByIdController)
 roomRouter.post("/", authenticate, validateRoomBody, createRoomController)
 roomRouter.put("/:id", authenticate, validateRoomId, validateRoomBody, updateRoomController)
 roomRouter.delete("/:id", authenticate, validateRoomId, deleteRoomController)
