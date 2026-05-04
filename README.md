@@ -439,6 +439,7 @@ npm run epita
 - [x] Relational data model with ObjectId foreign keys
 - [x] Populated enrollment responses (full relational chain in one query)
 - [x] Seed script for repeatable data setup
+- [ ] Adding a public routes to let user (login/register) before accessing the protected routes
 - [ ] Add search/filter query params per resource
 - [ ] Pagination on list endpoints
 - [ ] Role-based access control (admin vs student)
