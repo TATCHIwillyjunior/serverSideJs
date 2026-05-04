@@ -1,70 +1,90 @@
 # School Management REST API
 
-A Node.js Express server providing a complete REST API for managing school resources — students, courses, professors, and rooms — with full CRUD operations, JWT authentication, and a unified JSON database.
+A Node.js Express server providing a complete REST API for managing school resources — students, courses, professors, rooms, schools, and enrollments — with full CRUD operations, JWT authentication, MongoDB persistence, and fully populated relational responses.
 
 ## Features
 
-- ✅ Full CRUD for students, courses, professors, and rooms
-- ✅ Unified `db.json` — one file, six collections with relational links (foreign keys via IDs)
+- ✅ Full CRUD for students, courses, professors, rooms, schools, and enrollments
+- ✅ MongoDB Atlas via Mongoose — all data persisted in a real database
+- ✅ Relational data model — ObjectId foreign keys across all collections
+- ✅ Enrollment endpoint returns the full populated chain: student → school, course → professor + room
+- ✅ Unique compound index on enrollments — prevents a student enrolling twice in the same course
 - ✅ JWT issued on register (POST /students) and login (POST /login)
 - ✅ Protected routes — mutating endpoints require a valid Bearer token
 - ✅ DTO responses — password never leaves the server
 - ✅ Request body validation per resource (required fields, types, formats)
-- ✅ Password validation (required on POST, min 6 chars, optional on PUT)
+- ✅ MongoDB ObjectId validation on all `:id` params
 - ✅ bcrypt password hashing before storage (cost factor 10)
 - ✅ Protection against double-hashing already-hashed passwords
-- ✅ Course validation checks that professor_id and room_id exist in db.json
-- ✅ Duplicate email detection for students and professors (409 Conflict)
+- ✅ Cross-resource validation (course professor_id/room_id, enrollment student_id/course_id checked against DB)
+- ✅ 409 Conflict on duplicate email (students, professors) and duplicate enrollment
 - ✅ Malformed JSON handled gracefully (400 instead of server crash)
 - ✅ CORS enabled for cross-origin requests
+- ✅ Seed script to populate all collections in dependency order
 - ✅ Hot-reload with Nodemon for development
 - ✅ Environment variables via dotenv (.env never committed)
 
 ## Tech Stack
 
 - **Runtime:** Node.js
-- **Framework:** Express 5.2.1
-- **Middleware:** CORS 2.8.6
-- **Password Hashing:** bcrypt 6.0.0
-- **Authentication:** jsonwebtoken 9.0.3
-- **Environment:** dotenv 17.4.2
-- **Dev Tool:** Nodemon 3.1.14
-- **Data Format:** JSON
+- **Framework:** Express 5
+- **Database:** MongoDB Atlas
+- **ODM:** Mongoose
+- **Password Hashing:** bcrypt
+- **Authentication:** jsonwebtoken
+- **Environment:** dotenv
+- **Dev Tool:** Nodemon
 
 ## Project Structure
 
 ```
 ServerJs/
 ├── BACK/
-│   ├── index.js                  # Entry point — mounts all routers
-│   ├── db.json                   # Unified database (students, courses, professors, rooms, schools, enrollments)
+│   ├── index.js                      # Entry point — DB connection + all routers mounted
+│   ├── seed.js                       # Seeds all 6 collections into MongoDB in dependency order
+│   ├── db.json                       # Source data used by the seed script
 │   ├── package.json
-│   ├── .env                      # JWT_SECRET, JWT_EXPIRES_IN (never committed)
+│   ├── .env                          # MONGODB_URL, JWT_SECRET, JWT_EXPIRES_IN (never committed)
+│   ├── models/
+│   │   ├── student_db.js             # name, email, password, major, gpa, school_id → School
+│   │   ├── school_db.js              # name, city, address, dean
+│   │   ├── professor_db.js           # name, email, department, title
+│   │   ├── room_db.js                # number, building, capacity, type
+│   │   ├── course_db.js              # title, description, credits, professor_id → Professor, room_id → Room
+│   │   └── enrollment_db.js          # student_id → Student, course_id → Course (unique compound index)
 │   ├── controllers/
-│   │   ├── studentsController.js
+│   │   ├── studentsController.js     # toDTO(), CRUD + JWT on register
+│   │   ├── schoolsController.js
 │   │   ├── coursesController.js
 │   │   ├── professorsController.js
 │   │   ├── roomsController.js
-│   │   └── authController.js     # Login logic
+│   │   ├── enrollmentsController.js  # populated responses, 409 on duplicate
+│   │   └── authController.js         # POST /login
 │   ├── middleware/
-│   │   ├── auth.js               # JWT Bearer token verification
-│   │   ├── validation.js         # Student body/param validation + JSON error handler
-│   │   ├── hashPassword.js       # bcrypt hashing
-│   │   ├── courseValidation.js   # Course body/param validation
+│   │   ├── auth.js                   # JWT Bearer token verification → req.user
+│   │   ├── validation.js             # Student body/param validation + JSON error handler
+│   │   ├── hashPassword.js           # bcrypt hashing
+│   │   ├── schoolValidation.js
+│   │   ├── courseValidation.js
 │   │   ├── professorValidation.js
-│   │   └── roomValidation.js
+│   │   ├── roomValidation.js
+│   │   └── enrollmentValidation.js   # validates student_id + course_id exist in DB
 │   ├── routes/
 │   │   ├── students.js
+│   │   ├── schools.js
 │   │   ├── courses.js
 │   │   ├── professors.js
 │   │   ├── rooms.js
-│   │   └── auth.js               # POST /login
+│   │   ├── enrollments.js
+│   │   └── auth.js                   # POST /login
 │   └── services/
 │       ├── studentsServices.js
+│       ├── schoolsServices.js
 │       ├── coursesServices.js
 │       ├── professorsServices.js
-│       └── roomsServices.js
-├── FONT/                         # Frontend (HTML, CSS, JS)
+│       ├── roomsServices.js
+│       └── enrollmentsServices.js    # all queries use .populate() for relational responses
+├── FONT/                             # Frontend (HTML, CSS, JS)
 │   ├── index.html
 │   ├── script.js
 │   └── style.css
@@ -87,49 +107,73 @@ npm install
 
 3. **Create a `.env` file in the `BACK/` folder:**
 ```
+MONGODB_URL=mongodb+srv://<user>:<password>@cluster.mongodb.net/data?retryWrites=true&w=majority
 JWT_SECRET=your_super_secret_key_change_this
 JWT_EXPIRES_IN=24h
 ```
 
-4. **Start the development server:**
+4. **Seed the database** (inserts all sample data into MongoDB):
+```bash
+node seed.js
+```
+
+5. **Start the development server:**
 ```bash
 npm run dev
 ```
 
-The server will start on `http://localhost:3000/` with hot-reload enabled via Nodemon.
+The server will start on `http://localhost:3000/` with hot-reload enabled via Nodemon. The server only starts after a successful MongoDB connection.
 
 ### Frontend Setup
 
 1. Open `FONT/index.html` in your browser
-2. The frontend will automatically connect to the API at `http://localhost:3000/students`
-3. Make sure the backend server is running before starting the frontend
+2. Make sure the backend server is running before opening the frontend
+
+## Data Model & Relationships
+
+```
+Student ──[school_id]──────────► School
+   │
+   └──[Enrollment]──────────────► Course ──[professor_id]──► Professor
+                                      │
+                                      └──[room_id]──────────► Room
+```
+
+All foreign keys are MongoDB ObjectIds. The `GET /enrollments` endpoints resolve the full chain in one query using Mongoose `.populate()`.
 
 ## API Endpoints
-
-### Route overview
 
 Protected routes require: `Authorization: Bearer <token>`
 
 **Auth**
 | Method | Route | Auth | Description |
 |---|---|---|---|
-| POST | `/login` | No | Login — returns token + DTO |
+| POST | `/login` | No | Login — returns token + student DTO |
 
 **Students**
 | Method | Route | Auth | Description |
 |---|---|---|---|
-| GET | `/students` | No | Get all students (DTO) |
+| GET | `/students` | No | Get all students (DTO, no password) |
 | POST | `/students` | No | Register — returns token + DTO |
-| GET | `/students/:id` | Yes | Get student by ID (DTO) |
-| PUT | `/students/:id` | Yes | Update student |
+| GET | `/students/:id` | Yes | Get student by ObjectId |
+| PUT | `/students/:id` | Yes | Update student — returns DTO |
 | DELETE | `/students/:id` | Yes | Delete student |
+
+**Schools**
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/schools` | No | Get all schools |
+| GET | `/schools/:id` | No | Get school by ObjectId |
+| POST | `/schools` | Yes | Create school |
+| PUT | `/schools/:id` | Yes | Update school |
+| DELETE | `/schools/:id` | Yes | Delete school |
 
 **Courses**
 | Method | Route | Auth | Description |
 |---|---|---|---|
 | GET | `/courses` | No | Get all courses |
-| GET | `/courses/:id` | No | Get course by ID |
-| POST | `/courses` | Yes | Create course |
+| GET | `/courses/:id` | No | Get course by ObjectId |
+| POST | `/courses` | Yes | Create course (professor_id + room_id validated) |
 | PUT | `/courses/:id` | Yes | Update course |
 | DELETE | `/courses/:id` | Yes | Delete course |
 
@@ -137,7 +181,7 @@ Protected routes require: `Authorization: Bearer <token>`
 | Method | Route | Auth | Description |
 |---|---|---|---|
 | GET | `/professors` | No | Get all professors |
-| GET | `/professors/:id` | No | Get professor by ID |
+| GET | `/professors/:id` | No | Get professor by ObjectId |
 | POST | `/professors` | Yes | Create professor |
 | PUT | `/professors/:id` | Yes | Update professor |
 | DELETE | `/professors/:id` | Yes | Delete professor |
@@ -146,25 +190,65 @@ Protected routes require: `Authorization: Bearer <token>`
 | Method | Route | Auth | Description |
 |---|---|---|---|
 | GET | `/rooms` | No | Get all rooms |
-| GET | `/rooms/:id` | No | Get room by ID |
+| GET | `/rooms/:id` | No | Get room by ObjectId |
 | POST | `/rooms` | Yes | Create room |
 | PUT | `/rooms/:id` | Yes | Update room |
 | DELETE | `/rooms/:id` | Yes | Delete room |
 
+**Enrollments**
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/enrollments` | No | All enrollments (fully populated) |
+| GET | `/enrollments/student/:studentId` | No | All courses for a student (populated) |
+| GET | `/enrollments/:id` | No | Single enrollment (populated) |
+| POST | `/enrollments` | Yes | Enroll student in course — 409 if already enrolled |
+| DELETE | `/enrollments/:id` | Yes | Remove enrollment |
+
 ---
 
-### GET /
-Returns a welcome message.
+### Populated enrollment response
 
-**Response:**
+`GET /enrollments/student/:studentId` returns the full chain for each enrollment:
+
 ```json
-{ "msg": "Hello Willy! Your server is running..." }
+[
+  {
+    "_id": "...",
+    "student_id": {
+      "_id": "...",
+      "name": "Alice Martin",
+      "email": "alice.martin@epita.fr",
+      "major": "Computer Science",
+      "gpa": 3.8,
+      "school_id": {
+        "_id": "...",
+        "name": "EPITA",
+        "city": "Paris"
+      }
+    },
+    "course_id": {
+      "_id": "...",
+      "title": "Introduction to Algorithms",
+      "credits": 4,
+      "professor_id": {
+        "_id": "...",
+        "name": "Prof. Dupont",
+        "department": "Computer Science"
+      },
+      "room_id": {
+        "_id": "...",
+        "number": "A101",
+        "building": "Block A",
+        "capacity": 30
+      }
+    }
+  }
+]
 ```
 
 ---
 
 ### POST /login
-Authenticates an existing student and returns a JWT.
 
 **Request:**
 ```
@@ -181,63 +265,24 @@ Content-Type: application/json
 ```json
 {
   "token": "eyJhbGci...",
-  "student": { "id": 1, "email": "alice.martin@epita.fr" }
+  "student": {
+    "_id": "664a1f...",
+    "name": "Alice Martin",
+    "email": "alice.martin@epita.fr",
+    "major": "Computer Science",
+    "gpa": 3.8
+  }
 }
 ```
 
-**Response (400 - Missing fields):**
-```json
-{ "error": "❌ Email and password are required." }
-```
-
-**Response (401 - Wrong credentials):**
+**Response (401):**
 ```json
 { "error": "❌ Invalid credentials." }
 ```
 
 ---
 
-### GET /students
-Retrieves all students. Public. Returns DTO array.
-
-**Response (200):**
-```json
-[
-  { "id": 1, "email": "alice.martin@epita.fr" },
-  { "id": 2, "email": "bob.dupont@epita.fr" }
-]
-```
-
----
-
-### GET /students/:id
-Retrieves a specific student by ID. Requires token.
-
-**Request:**
-```
-GET http://localhost:3000/students/1
-Authorization: Bearer <token>
-```
-
-**Response (200):**
-```json
-{ "id": 1, "email": "alice.martin@epita.fr" }
-```
-
-**Response (401 - Missing or invalid token):**
-```json
-{ "error": "❌ Authorization token required." }
-```
-
-**Response (404 - Not found):**
-```json
-{ "error": "❌❌ Student was not found" }
-```
-
----
-
-### POST /students
-Creates a new student (register). Public. Returns JWT + DTO.
+### POST /students (register)
 
 **Request:**
 ```
@@ -258,103 +303,42 @@ Content-Type: application/json
 {
   "msg": "✅ Student created successfully",
   "token": "eyJhbGci...",
-  "student": { "id": 10, "email": "david.chen@epita.fr" }
+  "student": {
+    "_id": "664a1f...",
+    "name": "David Chen",
+    "email": "david.chen@epita.fr",
+    "major": "Computer Science",
+    "gpa": 3.7
+  }
 }
-```
-
-**Response (400 - Missing or invalid field):**
-```json
-{ "error": "❌ 'gpa' must be a number between 0 and 4." }
-```
-
-**Response (400 - Malformed JSON):**
-```json
-{ "error": "❌ Invalid JSON in request body." }
-```
-
-**Response (409 - Duplicate email):**
-```json
-{ "error": "❌ A student with this email already exists." }
 ```
 
 ---
 
-### PUT /students/:id
-Updates an existing student. Requires token. Returns DTO.
+### POST /enrollments
 
 **Request:**
 ```
-PUT http://localhost:3000/students/1
+POST http://localhost:3000/enrollments
 Authorization: Bearer <token>
 Content-Type: application/json
 
 {
-  "name": "Alice Martin",
-  "email": "alice.martin@epita.fr",
-  "major": "Data Science",
-  "gpa": 3.9
+  "student_id": "664a1f...",
+  "course_id":  "664a2b..."
 }
 ```
 
-> `password` is optional on PUT. If provided it must be at least 6 characters and will be re-hashed before saving.
+**Response (201):** fully populated enrollment object
 
-**Response (200):**
+**Response (409 - already enrolled):**
 ```json
-{
-  "msg": "✅ Student updated successfully",
-  "student": { "id": 1, "email": "alice.martin@epita.fr" }
-}
-```
-
-**Response (401 - Missing or invalid token):**
-```json
-{ "error": "❌ Authorization token required." }
-```
-
-**Response (400 - Invalid field):**
-```json
-{ "error": "❌ Request body is missing or not valid JSON. Make sure to set Content-Type: application/json." }
-```
-
-**Response (404 - Not found):**
-```json
-{ "error": "❌❌ Student was not found" }
-```
-
-**Response (409 - Duplicate email):**
-```json
-{ "error": "❌ A student with this email already exists." }
-```
-
----
-
-### DELETE /students/:id
-Deletes a student. Requires token.
-
-**Request:**
-```
-DELETE http://localhost:3000/students/1
-Authorization: Bearer <token>
-```
-
-**Response (200):**
-```json
-{ "msg": "✅ Student deleted successfully" }
-```
-
-**Response (401 - Missing or invalid token):**
-```json
-{ "error": "❌ Authorization token required." }
-```
-
-**Response (404 - Not found):**
-```json
-{ "error": "❌❌ Student was not found" }
+{ "error": "❌ Student is already enrolled in this course." }
 ```
 
 ## Usage Examples
 
-### Using cURL
+### cURL
 
 ```bash
 # Login and capture token
@@ -362,136 +346,101 @@ TOKEN=$(curl -s -X POST http://localhost:3000/login \
   -H "Content-Type: application/json" \
   -d '{"email":"alice.martin@epita.fr","password":"alice123"}' | jq -r '.token')
 
-# Register (also returns a token)
-curl -X POST http://localhost:3000/students \
-  -H "Content-Type: application/json" \
-  -d '{"name":"David","email":"david@epita.fr","password":"secret123","major":"CS","gpa":3.7}'
-
 # Get all students (public)
 curl http://localhost:3000/students
 
-# Get student by ID (requires token)
-curl http://localhost:3000/students/1 \
-  -H "Authorization: Bearer $TOKEN"
+# Get a student's full enrollment details (courses, professors, rooms, school)
+curl http://localhost:3000/enrollments/student/<studentObjectId>
 
-# Update a student (requires token, password optional)
-curl -X PUT http://localhost:3000/students/1 \
+# Create an enrollment (requires token)
+curl -X POST http://localhost:3000/enrollments \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"name":"Alice","email":"alice@epita.fr","major":"DS","gpa":3.9}'
+  -d '{"student_id":"<id>","course_id":"<id>"}'
 
-# Delete a student (requires token)
-curl -X DELETE http://localhost:3000/students/1 \
+# Delete an enrollment (requires token)
+curl -X DELETE http://localhost:3000/enrollments/<enrollmentId> \
   -H "Authorization: Bearer $TOKEN"
 ```
-
-### Using Postman
-
-1. Import the endpoints above into Postman
-2. Use the request examples provided
-3. Switch between GET, POST, PUT, DELETE methods as needed
 
 ## Available Scripts
 
-Navigate to the `BACK/` folder to run these scripts:
+Navigate to the `BACK/` folder:
 
 ```bash
-# Run with Nodemon (development with hot-reload)
+# Seed the database with sample data
+node seed.js
+
+# Run with Nodemon (development)
 npm run dev
 
-# Run with plain Node.js (EPITA project runner)
+# Run with plain Node.js (EPITA runner)
 npm run epita
 ```
 
-## Frontend
-
-The frontend files are located in the `FONT/` folder at the root level. To use the API with the frontend:
-
-1. Start the backend server: Navigate to `BACK/` folder and run `npm run dev`
-2. Open `FONT/index.html` in your browser (or use a local server)
-3. The frontend will automatically make requests to `http://localhost:3000/students`
-
-**Important:** Make sure the backend server is running before accessing the frontend, as it relies on the API endpoints.
-
-## Sample Data
-
-All data lives in `db.json`. Passwords are stored as bcrypt hashes.
+## Sample Data (seeded via seed.js)
 
 **Students (9)**
 1. Alice Martin — Computer Science, GPA 3.8, EPITA
-2. Bob builder — Civil Engineering, GPA 3.8, EPITA
+2. Bob Builder — Civil Engineering, GPA 3.8, EPITA
 3. Clara Rousseau — Computer Science, GPA 3.9, EPITA
-4. David Moreau — Computer Science, GPA 3.5, EPITA
+4. David Moreau — Computer Science, GPA 3.5, EPITECH
 5. Danail Michev — Electrical Engineering, GPA 3.5, EPITECH
-6. Eve Dupuis — Mechanical Engineering, GPA 3.7, EPITECH
-7. Frank Leclerc — Cloud Computing, GPA 3.7, EPITA
+6. Eve Dupuis — Mechanical Engineering, GPA 3.7, EPITA
+7. Frank Leclerc — Cloud Computing, GPA 3.7, EPITECH
 8. Grace Morel — Biomedical Engineering, GPA 3.8, EPITECH
-9. James Mike — Hitman, GPA 3.8, EPITECH
+9. James Mike — Hitman, GPA 3.8, EPITA
 
-**Schools (2):** EPITA, EPITECH
+**Schools (2):** EPITA (Paris), EPITECH (Paris)
 
-**Professors (5):** Dupont, Martin, Rousseau, Leclerc, Morel
+**Professors (5):** Dupont (CS), Martin (Web), Rousseau (DB), Leclerc (Systems), Morel (Networks)
 
-**Rooms (4):** A101 (Lecture Hall), B204 (Lab), C301 (Seminar), A102 (Lecture Hall)
+**Rooms (4):** A101 (Lecture Hall, 30), B204 (Lab, 20), C301 (Seminar, 15), A102 (Lecture Hall, 50)
 
-**Courses (5):** Algorithms, Web Development, Database Systems, Operating Systems, Computer Networks
+**Courses (5):** Introduction to Algorithms, Web Development, Database Systems, Operating Systems, Computer Networks
 
-**Enrollments (16):** students linked to courses via `{ student_id, course_id }` pairs
+**Enrollments (16):** 16 student → course pairs from db.json, all resolved to ObjectIds during seeding
 
-## Future Enhancements
+## Architecture
 
-- [x] Add request body validation
-- [x] Password validation (required on POST, min 6 chars)
-- [x] bcrypt password hashing before storage
-- [x] Duplicate ID and email detection on POST
-- [x] Graceful malformed JSON error handling
-- [x] Implement PUT to actually update the data file
-- [x] Implement DELETE to actually remove from the data file
-- [x] JWT authentication (issued on register and login)
-- [x] Protected routes with Bearer token middleware
-- [x] DTO responses — password never sent to client
-- [x] Unified db.json with relational data (courses, professors, rooms, schools, enrollments)
-- [x] Full CRUD for courses, professors, and rooms
-- [x] Cross-resource validation (course professor_id and room_id checked against db)
-- [ ] Replace db.json with a real database (MongoDB, PostgreSQL, etc.)
-- [ ] Add search/filter endpoints per resource
-- [ ] Add error logging
-- [ ] Add API documentation with Swagger
+### Design Patterns
 
-## Project Architecture
+- **MVC**: models → services (business logic) → controllers (HTTP) → routes
+- **Middleware pipeline**: auth → validation → controller (every protected route)
+- **DTO pattern**: `toDTO()` strips password before any student response
+- **Populate pattern**: enrollment service uses nested `.populate()` to resolve the full relational chain in a single query
 
-### Code Organization
+### Key Design Decisions
 
-The project is organized with a **clear separation of concerns** between frontend and backend:
-
-- **BACK/** - Backend REST API server (Node.js/Express)
-  - `controllers/` - Handle HTTP requests and responses
-  - `middleware/` - Validate request bodies/params and handle errors
-  - `routes/` - Define API endpoints and map to controllers
-  - `services/` - Contain business logic (data manipulation, validation)
-  - `index.js` - Express app configuration and server initialization
-
-- **FONT/** - Frontend client (HTML/CSS/JavaScript)
-  - Communicates with the backend via HTTP requests
-  - Displays student data in the UI.
-
-### Design Patterns Used
-
-1. **MVC (Model-View-Controller)**: Backend separates concerns with controllers, routes, and services
-2. **API-First**: Frontend consumes REST API independently
-3. **Modular Structure**: Each layer has a single responsibility
+- `authenticate` runs before the ID lookup on protected routes — unauthorized requests are rejected before touching the database
+- `/enrollments/student/:studentId` is declared before `/:id` in the router to prevent Express matching `student` as an ObjectId
+- All services use `.lean()` on reads (plain JS objects, spread-safe) and `.toObject()` on creates
+- The seed script inserts in dependency order: schools → professors → rooms → courses → students → enrollments, building numeric-id → ObjectId maps at each step
 
 ## Notes
 
-- All services read and write to `db.json` under their own key (`students`, `courses`, `professors`, `rooms`) — every request reads fresh from disk, no in-memory state
-- All four services share the same `db.json` file; a write by one service preserves the other collections untouched
-- Always set `Content-Type: application/json` on POST and PUT requests — without it, `express.json()` won't parse the body and validation will return a 400
-- Passwords are hashed with bcrypt (cost factor 10) before being written — plaintext passwords are never stored
-- `hashPassword` detects already-hashed values (bcrypt regex `$2b$...`) and skips them to prevent double-hashing on repeated PUT calls
-- Course `POST`/`PUT` validates that `professor_id` and `room_id` reference records that actually exist in `db.json` before writing
-- `authenticate` middleware runs before any ID lookup on protected routes — unauthorized requests are rejected before touching the database
-- JWT is signed with `JWT_SECRET` from `.env` — use a strong random string in production; the placeholder in the repo is for development only
+- All IDs are MongoDB ObjectIds (24-char hex strings) — numeric IDs are no longer used
+- Always set `Content-Type: application/json` on POST and PUT requests
+- Passwords are hashed with bcrypt (cost factor 10) — plaintext passwords are never stored
+- JWT is signed with `JWT_SECRET` from `.env` — use a strong random string in production
 - Tokens expire after `JWT_EXPIRES_IN` (default `24h`) — clients must call `POST /login` again after expiry
-- Malformed JSON bodies are caught by `handleJsonParseError` and return a clean 400 instead of an HTML crash page
-- For production, replace `db.json` with a real database (MongoDB, PostgreSQL, etc.)
+- Malformed JSON bodies return a clean 400 via `handleJsonParseError` instead of crashing
+- Run `node seed.js` any time to wipe and re-seed all collections
 
+## Future Enhancements
+
+- [x] Request body validation per resource
+- [x] bcrypt password hashing
+- [x] JWT authentication (register + login)
+- [x] Protected routes with Bearer token middleware
+- [x] DTO responses — password never sent to client
+- [x] Full CRUD for courses, professors, rooms, schools, enrollments
+- [x] MongoDB Atlas with Mongoose ODM
+- [x] Relational data model with ObjectId foreign keys
+- [x] Populated enrollment responses (full relational chain in one query)
+- [x] Seed script for repeatable data setup
+- [ ] Add search/filter query params per resource
+- [ ] Pagination on list endpoints
+- [ ] Role-based access control (admin vs student)
+- [ ] Swagger / OpenAPI documentation
+- [ ] Error logging (Winston, Pino)
