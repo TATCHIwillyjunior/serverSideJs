@@ -1,16 +1,22 @@
 import "dotenv/config"
 import express from "express"
 import cors from "cors"
+import mongoose from "mongoose"
 
 import studentsRoutes from "./routes/students.js"
 import coursesRoutes from "./routes/courses.js"
 import professorsRoutes from "./routes/professors.js"
 import roomsRoutes from "./routes/rooms.js"
+import schoolsRoutes from "./routes/schools.js"
+import enrollmentsRoutes from "./routes/enrollments.js"
 import authRoutes from "./routes/auth.js"
 import { handleJsonParseError } from "./middleware/validation.js"
 
 const app = express()
 const port = 3000
+
+
+
 
 app.use(cors())
 app.use(express.json())
@@ -25,12 +31,20 @@ app.use("/students", studentsRoutes)
 app.use("/courses", coursesRoutes)
 app.use("/professors", professorsRoutes)
 app.use("/rooms", roomsRoutes)
+app.use("/schools", schoolsRoutes)
+app.use("/enrollments", enrollmentsRoutes)
 
 app.use(handleJsonParseError)
 
-app.listen(port, () => {
-	console.log(`Example app listening on port ${port}`)
-})
+mongoose.connect(process.env.MONGODB_URL)
+  .then(() => {
+    console.log("✅ Connected to MongoDB")
+    app.listen(port, () => console.log(`Example app listening on port ${port}`))
+  })
+  .catch(err => console.error("❌ MongoDB connection error:", err))
+
+
+
 
 // // GET all students
 // app.get("/students", (req, res) => {

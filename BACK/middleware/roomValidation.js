@@ -1,11 +1,12 @@
+import mongoose from "mongoose"
 import { getRoomById } from "../services/roomsServices.js"
 
-export function validateRoomId(req, res, next) {
-  const id = parseInt(req.params.id)
-  if (isNaN(id) || id <= 0) {
-    return res.status(400).json({ error: "❌ ID must be a valid positive number." })
+export async function validateRoomId(req, res, next) {
+  const { id } = req.params
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "❌ ID must be a valid MongoDB ObjectId." })
   }
-  const room = getRoomById(id)
+  const room = await getRoomById(id)
   if (!room) {
     return res.status(404).json({ error: "❌ Room not found." })
   }
@@ -13,7 +14,7 @@ export function validateRoomId(req, res, next) {
   next()
 }
 
-export function validateRoomBody(req, res, next) {
+export async function validateRoomBody(req, res, next) {
   if (!req.body || typeof req.body !== "object") {
     return res.status(400).json({ error: "❌ Request body is missing or not valid JSON. Make sure to set Content-Type: application/json." })
   }

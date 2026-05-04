@@ -1,46 +1,22 @@
-import { readFileSync, writeFileSync } from "fs"
-import { fileURLToPath } from "url"
-import { dirname, join } from "path"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const DATA_PATH = join(__dirname, "../db.json")
-
-function readDB() {
-    return JSON.parse(readFileSync(DATA_PATH, "utf-8"))
-}
-
-function writeDB(db) {
-    writeFileSync(DATA_PATH, JSON.stringify(db, null, 2))
-}
+import Student from "../models/student_db.js"
 
 export function getAllStudents() {
-    return readDB().students
+  return Student.find().lean()
 }
 
 export function getStudentById(id) {
-    return readDB().students.find(s => s.id === id)
+  return Student.findById(id).lean()
 }
 
-export function createStudent(data) {
-    const db = readDB()
-    const newId = data.id ?? Math.max(...db.students.map(s => s.id)) + 1
-    const newStudent = { ...data, id: newId }
-    db.students.push(newStudent)
-    writeDB(db)
-    return newStudent
+export async function createStudent(data) {
+  const doc = await Student.create(data)
+  return doc.toObject()
 }
 
 export function updateStudent(id, data) {
-    const db = readDB()
-    const index = db.students.findIndex(s => s.id === id)
-    db.students[index] = { ...db.students[index], ...data, id }
-    writeDB(db)
-    return db.students[index]
+  return Student.findByIdAndUpdate(id, data, { new: true }).lean()
 }
 
 export function deleteStudent(id) {
-    const db = readDB()
-    db.students = db.students.filter(s => s.id !== id)
-    writeDB(db)
+  return Student.findByIdAndDelete(id)
 }

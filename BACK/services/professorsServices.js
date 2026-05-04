@@ -1,46 +1,22 @@
-import { readFileSync, writeFileSync } from "fs"
-import { fileURLToPath } from "url"
-import { dirname, join } from "path"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const DATA_PATH = join(__dirname, "../db.json")
-
-function readDB() {
-  return JSON.parse(readFileSync(DATA_PATH, "utf-8"))
-}
-
-function writeDB(db) {
-  writeFileSync(DATA_PATH, JSON.stringify(db, null, 2))
-}
+import Professor from "../models/professor_db.js"
 
 export function getAllProfessors() {
-  return readDB().professors
+  return Professor.find().lean()
 }
 
 export function getProfessorById(id) {
-  return readDB().professors.find(p => p.id === id)
+  return Professor.findById(id).lean()
 }
 
-export function createProfessor(data) {
-  const db = readDB()
-  const newId = data.id ?? Math.max(...db.professors.map(p => p.id)) + 1
-  const newProfessor = { ...data, id: newId }
-  db.professors.push(newProfessor)
-  writeDB(db)
-  return newProfessor
+export async function createProfessor(data) {
+  const doc = await Professor.create(data)
+  return doc.toObject()
 }
 
 export function updateProfessor(id, data) {
-  const db = readDB()
-  const index = db.professors.findIndex(p => p.id === id)
-  db.professors[index] = { ...db.professors[index], ...data, id }
-  writeDB(db)
-  return db.professors[index]
+  return Professor.findByIdAndUpdate(id, data, { new: true }).lean()
 }
 
 export function deleteProfessor(id) {
-  const db = readDB()
-  db.professors = db.professors.filter(p => p.id !== id)
-  writeDB(db)
+  return Professor.findByIdAndDelete(id)
 }

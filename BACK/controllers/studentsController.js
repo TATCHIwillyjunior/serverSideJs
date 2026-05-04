@@ -12,8 +12,13 @@ export function toDTO(student) {
 }
 
 // GET all students
-export function getStudentsController(req, res) {
-  res.json(getAllStudents().map(toDTO))
+export async function getStudentsController(req, res) {
+  try {
+    const students = await getAllStudents()
+    res.json(students.map(toDTO))
+  } catch {
+    res.status(500).json({ error: "❌ Failed to fetch students." })
+  }
 }
 
 // GET student by ID
@@ -22,34 +27,43 @@ export function getStudentByIdController(req, res) {
 }
 
 // POST create a new student — returns JWT + DTO
-export function createStudentController(req, res) {
-  const newStudent = createStudent(req.body)
-
-  const token = jwt.sign(
-    { id: newStudent.id, email: newStudent.email },
-    process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN }
-  )
-
-  res.status(201).json({
-    msg: "✅ Student created successfully",
-    token,
-    student: toDTO(newStudent)
-  })
+export async function createStudentController(req, res) {
+  try {
+    const newStudent = await createStudent(req.body)
+    const token = jwt.sign(
+      { id: newStudent._id, email: newStudent.email },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN }
+    )
+    res.status(201).json({
+      msg: "✅ Student created successfully",
+      token,
+      student: toDTO(newStudent)
+    })
+  } catch {
+    res.status(500).json({ error: "❌ Failed to create student." })
+  }
 }
 
 // PUT update a student — returns DTO
-export function updateStudentController(req, res) {
-  const updated = updateStudent(parseInt(req.params.id), req.body)
-  res.json({
-    msg: "✅ Student updated successfully",
-    student: toDTO(updated)
-  })
+export async function updateStudentController(req, res) {
+  try {
+    const updated = await updateStudent(req.params.id, req.body)
+    res.json({
+      msg: "✅ Student updated successfully",
+      student: toDTO(updated)
+    })
+  } catch {
+    res.status(500).json({ error: "❌ Failed to update student." })
+  }
 }
 
 // DELETE a student
-export function deleteStudentController(req, res) {
-  deleteStudent(parseInt(req.params.id))
-  res.json({ 
-    msg: "✅ Student deleted successfully" })
+export async function deleteStudentController(req, res) {
+  try {
+    await deleteStudent(req.params.id)
+    res.json({ msg: "✅ Student deleted successfully" })
+  } catch {
+    res.status(500).json({ error: "❌ Failed to delete student." })
+  }
 }
